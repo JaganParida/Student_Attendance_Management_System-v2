@@ -1,0 +1,217 @@
+<div class="attendance-performance">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Attendance Performance</h1>
+        <p>Monitor and analyze attendance trends across your courses and students</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section card">
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label class="form-label">Course</label>
+                <select [(ngModel)]="selectedCourse" class="form-control">
+                    <option *ngFor="let course of courses" [value]="course">{{ course }}</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="form-label">Timeframe</label>
+                <select [(ngModel)]="selectedTimeframe" class="form-control">
+                    <option *ngFor="let timeframe of timeframes" [value]="timeframe.value">
+                        {{ timeframe.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-outline" (click)="exportPerformanceReport()">
+                    <i class="fas fa-download"></i>
+                    Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overall Stats -->
+    <div class="overall-stats">
+        <div class="stat-card">
+            <div class="stat-icon overall-average">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ getOverallAverage() }}%</h3>
+                <p>Overall Average Attendance</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon total-classes">
+                <i class="fas fa-chalkboard"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ getTotalConductedClasses() }}</h3>
+                <p>Total Classes Conducted</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon low-attendance">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ getTotalLowAttendanceStudents() }}</h3>
+                <p>Students with Low Attendance</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon courses-tracked">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ coursePerformance.length }}</h3>
+                <p>Courses Tracked</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Performance -->
+    <div class="course-performance card">
+        <div class="card-header">
+            <h3>Course-wise Performance</h3>
+            <p>Attendance statistics for each of your courses</p>
+        </div>
+
+        <app-loading-spinner *ngIf="isLoading" message="Loading performance data..." [overlay]="false">
+        </app-loading-spinner>
+
+        <div *ngIf="!isLoading && coursePerformance.length === 0" class="empty-state">
+            <i class="fas fa-chart-bar"></i>
+            <h4>No performance data available</h4>
+            <p>Attendance data will appear here once classes are conducted</p>
+        </div>
+
+        <div *ngIf="!isLoading && coursePerformance.length > 0" class="performance-grid">
+            <div *ngFor="let course of coursePerformance" class="performance-card">
+                <div class="course-header">
+                    <h4 class="course-name">{{ course.courseName }}</h4>
+                    <span class="course-code">{{ course.courseCode }}</span>
+                </div>
+
+                <div class="class-info">
+                    <span class="class-name">{{ course.className }}</span>
+                </div>
+
+                <div class="attendance-stats">
+                    <div class="stat">
+                        <span class="stat-value">{{ course.averageAttendance }}%</span>
+                        <span class="stat-label">Average</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ course.conductedClasses }}/{{ course.totalClasses }}</span>
+                        <span class="stat-label">Classes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ course.lowAttendanceStudents }}</span>
+                        <span class="stat-label">Low Att.</span>
+                    </div>
+                </div>
+
+                <div class="trend-indicator">
+                    <i [class]="getTrendIcon(course.trend)"></i>
+                    <span class="trend-text">{{ getTrendText(course.trend) }}</span>
+                    <span class="trend-percentage">{{ course.trendPercentage }}%</span>
+                </div>
+
+                <div class="attendance-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="course.averageAttendance">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Performance -->
+    <div class="student-performance card">
+        <div class="card-header">
+            <h3>Student Performance</h3>
+            <p>Individual student attendance records and status</p>
+        </div>
+
+        <div *ngIf="!isLoading && studentPerformance.length === 0" class="empty-state">
+            <i class="fas fa-user-graduate"></i>
+            <h4>No student data available</h4>
+            <p>Student performance data will appear here</p>
+        </div>
+
+        <div *ngIf="!isLoading && studentPerformance.length > 0" class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Classes</th>
+                        <th>Attendance</th>
+                        <th>Last Attended</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let student of studentPerformance">
+                        <td>
+                            <div class="student-info">
+                                <div class="student-avatar">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <div class="student-details">
+                                    <strong class="student-name">{{ student.name }}</strong>
+                                    <span class="student-roll">{{ student.rollNumber }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="class-badge">{{ student.className }}</span>
+                        </td>
+                        <td>
+                            <span class="classes-count">{{ student.attendedClasses }}/{{ student.totalClasses }}</span>
+                        </td>
+                        <td>
+                            <div class="attendance-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" [class]="'progress-' + getStatusColor(student.status)"
+                                        [style.width.%]="student.attendancePercentage">
+                                    </div>
+                                </div>
+                                <span class="percentage">{{ student.attendancePercentage }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="last-attendance">{{ student.lastAttendance | dateFormat:'short' }}</span>
+                        </td>
+                        <td>
+                            <div class="status-badge" [class]="'status-' + getStatusColor(student.status)">
+                                <i [class]="getStatusIcon(student.status)"></i>
+                                {{ getStatusText(student.status) }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" title="Notify Parent"
+                                    (click)="sendParentNotification(student)">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                                <button class="btn-icon" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,240 @@
+<div class="courses-management">
+    <div class="page-header">
+        <h1>Courses Management</h1>
+        <p>Manage courses, assign teachers, organize class subjects, and enroll students.</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+    </div>
+
+    <div class="actions-bar">
+        <div class="search-box">
+            <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Search courses..." />
+        </div>
+        <button class="btn btn-primary" (click)="addCourse()" [disabled]="isAddingCourse">Add Course</button>
+    </div>
+
+    <!-- Add/Edit Course Form -->
+    <div *ngIf="isAddingCourse" class="add-course-form card slide-in">
+        <h3>{{ isEditing ? "Edit Course" : "Add New Course" }}</h3>
+
+        <form [formGroup]="courseForm" (ngSubmit)="onSubmitCourse()" class="form-grid">
+
+            <div class="form-group">
+                <label>Course Code *</label>
+                <input type="text" formControlName="courseCode" class="form-control"
+                    [class.error]="f['courseCode'].invalid && f['courseCode'].touched" />
+                <span *ngIf="f['courseCode'].invalid && f['courseCode'].touched" class="error-message">
+                    Course code is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>Course Name *</label>
+                <input type="text" formControlName="courseName" class="form-control"
+                    [class.error]="f['courseName'].invalid && f['courseName'].touched" />
+                <span *ngIf="f['courseName'].invalid && f['courseName'].touched" class="error-message">
+                    Course name is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>Short Name *</label>
+                <input type="text" formControlName="shortName" class="form-control"
+                    [class.error]="f['shortName'].invalid && f['shortName'].touched" />
+                <span *ngIf="f['shortName'].invalid && f['shortName'].touched" class="error-message">
+                    Short name is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>Assign Teacher *</label>
+                <select formControlName="teacherId" class="form-control"
+                    [class.error]="f['teacherId'].invalid && f['teacherId'].touched">
+                    <option [ngValue]="null" disabled>Select Teacher</option>
+                    <option *ngFor="let t of teachers" [value]="t.id">{{ t.name }}</option>
+                </select>
+                <span *ngIf="f['teacherId'].invalid && f['teacherId'].touched" class="error-message">
+                    Teacher assignment is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>Assign Class *</label>
+                <select formControlName="classId" class="form-control"
+                    [class.error]="f['classId'].invalid && f['classId'].touched">
+                    <option [ngValue]="null" disabled>Select Class</option>
+                    <option *ngFor="let cls of classes" [value]="cls.id">{{ cls.name }}</option>
+                </select>
+                <span *ngIf="f['classId'].invalid && f['classId'].touched" class="error-message">
+                    Class assignment is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>Class Room</label>
+                <input type="text" formControlName="classRoom" class="form-control" placeholder="e.g., Room 301B">
+            </div>
+
+            <div class="form-group">
+                <label>Day of Week *</label>
+                <select formControlName="dayOfWeek" class="form-control"
+                    [class.error]="f['dayOfWeek'].invalid && f['dayOfWeek'].touched">
+                    <option [ngValue]="null" disabled>Select day...</option>
+                    <option *ngFor="let day of daysOfWeek" [value]="day">{{ day | titlecase }}</option>
+                </select>
+                <span *ngIf="f['dayOfWeek'].invalid && f['dayOfWeek'].touched" class="error-message">
+                    Day of week is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>Start Time *</label>
+                <input type="time" formControlName="startTime" class="form-control"
+                    [class.error]="f['startTime'].invalid && f['startTime'].touched">
+                <span *ngIf="f['startTime'].invalid && f['startTime'].touched" class="error-message">
+                    Start time is required
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label>End Time *</label>
+                <input type="time" formControlName="endTime" class="form-control"
+                    [class.error]="f['endTime'].invalid && f['endTime'].touched">
+                <span *ngIf="f['endTime'].invalid && f['endTime'].touched" class="error-message">
+                    End time is required
+                </span>
+            </div>
+
+            <div class="form-group form-span-3">
+                <label>Description</label>
+                <textarea formControlName="description" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="form-group form-span-3 student-select-group">
+                <label>Assign Students</label>
+
+                <div class="custom-dropdown-container">
+                    <div class="dropdown-trigger form-control" (click)="toggleStudentDropdown()">
+                        <span class="selected-text">
+                            {{ getSelectedStudentsLabel() }}
+                        </span>
+                        <i class="fas" [class.fa-chevron-down]="!isStudentDropdownOpen"
+                            [class.fa-chevron-up]="isStudentDropdownOpen"></i>
+                    </div>
+
+                    <div class="dropdown-list" *ngIf="isStudentDropdownOpen">
+                        <div class="checkbox-item select-all">
+                            <label>
+                                <input type="checkbox" (change)="toggleAllStudents($event)" [checked]="isAllSelected()">
+                                <span>Select All Students</span>
+                            </label>
+                        </div>
+
+                        <div class="list-scroll-area">
+                            <div *ngFor="let s of students" class="checkbox-item">
+                                <label>
+                                    <input type="checkbox" [value]="s.id" (change)="onStudentChange($event)"
+                                        [checked]="isStudentSelected(s.id)">
+                                    <span>{{ s.name }} <small>({{ s.details }})</small></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dropdown-overlay" *ngIf="isStudentDropdownOpen" (click)="isStudentDropdownOpen = false">
+                </div>
+            </div>
+
+            <div class="form-actions form-span-3">
+                <button type="button" class="btn btn-outline" (click)="cancelAddCourse()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="courseForm.invalid">
+                    {{ isEditing ? "Update Course" : "Add Course" }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Courses List Table -->
+    <div class="courses-list card">
+        <h3>Courses ({{ filteredCourses.length }})</h3>
+
+        <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+        <div *ngIf="!isLoading && filteredCourses.length === 0" class="empty-state">
+            No courses found
+        </div>
+
+        <table class="table" *ngIf="!isLoading && filteredCourses.length > 0">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Short</th>
+                    <th>Teacher</th>
+                    <th>Class</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Room</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let c of filteredCourses">
+                    <td>{{ c.courseCode }}</td>
+                    <td>{{ c.courseName }}</td>
+
+                    <!-- Short Name: Check for null or empty string -->
+                    <td>
+                        <span *ngIf="c.shortName && c.shortName !== '-'">{{ c.shortName }}</span>
+                        <span *ngIf="!c.shortName || c.shortName === '-'" class="text-muted">-</span>
+                    </td>
+
+                    <!-- Teacher: Check for "Unassigned" or null -->
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span *ngIf="c.teacherName && c.teacherName !== 'Unassigned'">
+                                {{ c.teacherName }}
+                            </span>
+                            <span *ngIf="!c.teacherName || c.teacherName === 'Unassigned'" class="text-muted"
+                                style="font-style: italic;">
+                                No Teacher
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Class: Check for "No Class" or null to avoid " - C" -->
+                    <td>
+                        <span *ngIf="c.className && c.className !== 'No Class'">
+                            {{ c.className }} <span *ngIf="c.section">- {{ c.section }}</span>
+                        </span>
+                        <span *ngIf="!c.className || c.className === 'No Class'" class="text-muted"
+                            style="font-style: italic;">
+                            Unassigned
+                        </span>
+                    </td>
+
+                    <td>{{ c.dayOfWeek | titlecase }}</td>
+                    <td>{{ c.startTime }} - {{ c.endTime }}</td>
+                    <td>{{ c.classRoom }}</td>
+                    <td>
+                        <button class="btn-icon" (click)="editCourse(c)">Edit</button>
+                        <button class="btn-icon btn-danger" (click)="confirmDeleteCourse(c)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <app-confirmation-dialog [show]="showConfirmation" title="Delete Course"
+        [message]="'Are you sure you want to delete ' + (courseToDelete?.courseName || 'this course') + '?'"
+        confirmText="Delete" cancelText="Cancel" type="danger" (confirmed)="onDeleteConfirmed()"
+        (cancelled)="onDeleteCancelled()">
+    </app-confirmation-dialog>
+</div>

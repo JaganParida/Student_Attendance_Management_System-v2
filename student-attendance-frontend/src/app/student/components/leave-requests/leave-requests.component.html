@@ -1,0 +1,275 @@
+<div class="leave-requests">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Leave Requests</h1>
+        <p>Submit and track your leave requests for course absences</p>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        {{ successMessage }}
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <div class="requests-stats">
+            <div class="stat">
+                <span class="stat-value">{{ getPendingRequests().length }}</span>
+                <span class="stat-label">Pending</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">{{ getProcessedRequests().length }}</span>
+                <span class="stat-label">Processed</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">{{ leaveRequests.length }}</span>
+                <span class="stat-label">Total</span>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" (click)="openLeaveForm()">
+            <i class="fas fa-plus"></i>
+            New Leave Request
+        </button>
+    </div>
+
+    <!-- Leave Request Form -->
+    <div *ngIf="showLeaveForm" class="leave-form-section card slide-in">
+        <div class="form-header">
+            <h3>Submit Leave Request</h3>
+            <p>Fill in the details for your leave application</p>
+        </div>
+
+        <form [formGroup]="leaveForm" (ngSubmit)="onSubmitLeave()" class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Course *</label>
+                <select formControlName="courseId" class="form-control"
+                    [class.error]="courseId?.invalid && courseId?.touched">
+                    <option value="">Select Course</option>
+                    <option *ngFor="let course of courses" [value]="course.id">
+                        {{ course.name }} ({{ course.code }})
+                    </option>
+                </select>
+                <div *ngIf="courseId?.invalid && courseId?.touched" class="error-message">
+                    <span *ngIf="courseId?.errors?.['required']">Course selection is required</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">From Date *</label>
+                <input type="date" formControlName="fromDate" class="form-control"
+                    [class.error]="fromDate?.invalid && fromDate?.touched">
+                <div *ngIf="fromDate?.invalid && fromDate?.touched" class="error-message">
+                    <span *ngIf="fromDate?.errors?.['required']">From date is required</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">To Date *</label>
+                <input type="date" formControlName="toDate" class="form-control"
+                    [class.error]="toDate?.invalid && toDate?.touched">
+                <div *ngIf="toDate?.invalid && toDate?.touched" class="error-message">
+                    <span *ngIf="toDate?.errors?.['required']">To date is required</span>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">Reason *</label>
+                <textarea formControlName="reason" class="form-control"
+                    placeholder="Please provide a detailed reason for your leave request..." rows="4"
+                    [class.error]="reason?.invalid && reason?.touched">
+        </textarea>
+                <div *ngIf="reason?.invalid && reason?.touched" class="error-message">
+                    <span *ngIf="reason?.errors?.['required']">Reason is required</span>
+                    <span *ngIf="reason?.errors?.['minlength']">Reason must be at least 10 characters</span>
+                </div>
+                <div class="help-text">
+                    Provide a clear and detailed explanation for your leave request
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">Proof Document (Optional)</label>
+                <input type="text" formControlName="proofDocument" class="form-control"
+                    placeholder="e.g., medical_certificate.pdf">
+                <div class="help-text">
+                    You can upload supporting documents like medical certificates, travel tickets, etc.
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" (click)="closeLeaveForm()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="leaveForm.invalid || isSubmitting">
+                    <app-loading-spinner *ngIf="isSubmitting" size="sm" message="" [overlay]="false">
+                    </app-loading-spinner>
+                    <span *ngIf="!isSubmitting">
+                        <i class="fas fa-paper-plane"></i>
+                        Submit Request
+                    </span>
+                    <span *ngIf="isSubmitting">Submitting...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Loading State -->
+    <app-loading-spinner *ngIf="isLoading" message="Loading your leave requests..." [overlay]="false">
+    </app-loading-spinner>
+
+    <!-- Leave Requests List -->
+    <div *ngIf="!isLoading" class="requests-list">
+        <!-- Pending Requests -->
+        <div *ngIf="getPendingRequests().length > 0" class="requests-section">
+            <h3>Pending Requests</h3>
+            <p>Your leave requests awaiting approval</p>
+
+            <div class="requests-grid">
+                <div *ngFor="let request of getPendingRequests()" class="request-card card">
+                    <div class="request-header">
+                        <div class="course-info">
+                            <div class="course-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h4 class="course-name">{{ request.courseName }}</h4>
+                                <p class="course-code">{{ request.courseCode }}</p>
+                            </div>
+                        </div>
+                        <div class="request-status" [class]="'status-' + getStatusColor(request.status)">
+                            <i [class]="getStatusIcon(request.status)"></i>
+                            {{ request.status }}
+                        </div>
+                    </div>
+
+                    <div class="request-details">
+                        <div class="detail-row">
+                            <div class="detail-item">
+                                <strong>Leave Period:</strong>
+                                <span>{{ request.fromDate | dateFormat:'short' }} to {{ request.toDate |
+                                    dateFormat:'short' }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Duration:</strong>
+                                <span>{{ getTotalDays(request.fromDate, request.toDate) }} day(s)</span>
+                            </div>
+                        </div>
+
+                        <div class="reason-section">
+                            <strong>Reason:</strong>
+                            <p class="reason-text">{{ request.reason }}</p>
+                        </div>
+
+                        <div *ngIf="request.proofDocument" class="proof-section">
+                            <strong>Proof Document:</strong>
+                            <span class="document-name">{{ request.proofDocument }}</span>
+                        </div>
+
+                        <div class="request-meta">
+                            <span class="requested-at">
+                                Submitted: {{ request.requestedAt | dateFormat:'medium' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="request-actions">
+                        <button class="btn btn-outline btn-sm btn-danger" (click)="confirmDeleteRequest(request)">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processed Requests -->
+        <div *ngIf="getProcessedRequests().length > 0" class="requests-section">
+            <h3>Processed Requests</h3>
+            <p>Your previously submitted leave requests</p>
+
+            <div class="requests-grid">
+                <div *ngFor="let request of getProcessedRequests()" class="request-card card">
+                    <div class="request-header">
+                        <div class="course-info">
+                            <div class="course-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h4 class="course-name">{{ request.courseName }}</h4>
+                                <p class="course-code">{{ request.courseCode }}</p>
+                            </div>
+                        </div>
+                        <div class="request-status" [class]="'status-' + getStatusColor(request.status)">
+                            <i [class]="getStatusIcon(request.status)"></i>
+                            {{ request.status }}
+                        </div>
+                    </div>
+
+                    <div class="request-details">
+                        <div class="detail-row">
+                            <div class="detail-item">
+                                <strong>Leave Period:</strong>
+                                <span>{{ request.fromDate | dateFormat:'short' }} to {{ request.toDate |
+                                    dateFormat:'short' }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Duration:</strong>
+                                <span>{{ getTotalDays(request.fromDate, request.toDate) }} day(s)</span>
+                            </div>
+                        </div>
+
+                        <div class="reason-section">
+                            <strong>Reason:</strong>
+                            <p class="reason-text">{{ request.reason }}</p>
+                        </div>
+
+                        <div *ngIf="request.proofDocument" class="proof-section">
+                            <strong>Proof Document:</strong>
+                            <span class="document-name">{{ request.proofDocument }}</span>
+                        </div>
+
+                        <div class="processing-info">
+                            <div class="processed-by" *ngIf="request.processedBy">
+                                <strong>Processed By:</strong>
+                                <span>{{ request.processedBy }}</span>
+                            </div>
+                            <div class="processed-at" *ngIf="request.processedAt">
+                                <strong>Processed At:</strong>
+                                <span>{{ request.processedAt | dateFormat:'medium' }}</span>
+                            </div>
+                            <div class="remarks" *ngIf="request.remarks">
+                                <strong>Remarks:</strong>
+                                <span class="remarks-text">{{ request.remarks }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="leaveRequests.length === 0" class="empty-state card">
+            <i class="fas fa-envelope-open"></i>
+            <h4>No leave requests found</h4>
+            <p>You haven't submitted any leave requests yet</p>
+            <button class="btn btn-primary" (click)="openLeaveForm()">
+                <i class="fas fa-plus"></i>
+                Submit Your First Request
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <app-confirmation-dialog [show]="showConfirmation" title="Delete Leave Request"
+        [message]="'Are you sure you want to delete your leave request for ' + (requestToDelete?.courseName || 'this course') + '?'"
+        confirmText="Delete" cancelText="Cancel" type="danger" (confirmed)="onDeleteConfirmed()"
+        (cancelled)="onDeleteCancelled()">
+    </app-confirmation-dialog>
+</div>

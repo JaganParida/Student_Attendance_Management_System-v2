@@ -1,0 +1,453 @@
+<div class="requests-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">Unlock Request History</h1>
+            <p class="page-subtitle">Track your attendance unlock requests and their status</p>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="content-card">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading requests...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && requests.length === 0" class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h3>No Requests Found</h3>
+            <p>You haven't made any unlock requests yet.</p>
+        </div>
+
+        <!-- Requests Table -->
+        <div *ngIf="!isLoading && requests.length > 0" class="table-section">
+            <div class="table-container">
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th class="date-column">Request Date</th>
+                            <th class="course-column">Course</th>
+                            <th class="target-column">Target Date</th>
+                            <th class="reason-column">Reason</th>
+                            <th class="type-column">Type</th>
+                            <th class="status-column">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let req of requests" class="table-row">
+                            <!-- Request Date -->
+                            <td class="date-cell">
+                                <div class="date-display">
+                                    <div class="date">{{ req.createdAt | date:'mediumDate' }}</div>
+                                    <div class="time">{{ req.createdAt | date:'shortTime' }}</div>
+                                </div>
+                            </td>
+
+                            <!-- Course Name -->
+                            <td class="course-cell">
+                                <div class="course-name">{{ req.course?.courseName || 'Unknown Course' }}</div>
+                            </td>
+
+                            <!-- Target Date -->
+                            <td class="target-cell">
+                                <div class="target-date">{{ req.requestDate | date:'mediumDate' }}</div>
+                            </td>
+
+                            <!-- Reason -->
+                            <td class="reason-cell">
+                                <div class="reason-text">{{ req.reason }}</div>
+                            </td>
+
+                            <!-- Type -->
+                            <td class="type-cell">
+                                <span class="type-badge">{{ req.requestType }}</span>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="status-cell">
+                                <span class="status-badge" [ngClass]="getStatusClass(req.status)">
+                                    {{ req.status }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Design System Variables - Consistent with Previous Components */
+    :host {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+        --info: #06b6d4;
+        --info-light: #ecfeff;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --bg-light: #f8fafc;
+        --white: #ffffff;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius: 12px;
+    }
+
+    .requests-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .header-content .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+    }
+
+    .header-content .page-subtitle {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 16px;
+    }
+
+    /* Content Card */
+    .content-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    /* Loading State */
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--primary-light);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-state p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--bg-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        color: var(--text-muted);
+    }
+
+    .empty-icon i {
+        font-size: 32px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Table Section */
+    .table-section {
+        overflow: hidden;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .requests-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .requests-table thead {
+        background: var(--bg-light);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .requests-table th {
+        padding: 20px 24px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .requests-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background-color 0.2s;
+    }
+
+    .requests-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .requests-table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    .requests-table td {
+        padding: 20px 24px;
+    }
+
+    /* Table Cells */
+    .date-cell .date-display {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-display .date {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .date-display .time {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .course-cell .course-name {
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 14px;
+    }
+
+    .target-cell .target-date {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 14px;
+    }
+
+    .reason-cell .reason-text {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-style: italic;
+        line-height: 1.4;
+        max-width: 250px;
+    }
+
+    /* Badges */
+    .type-badge {
+        padding: 6px 12px;
+        background: var(--info-light);
+        color: var(--info);
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--info);
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Status Classes */
+    .status-pending {
+        background: var(--warning-light);
+        color: var(--warning);
+        border: 1px solid var(--warning);
+    }
+
+    .status-approved {
+        background: var(--success-light);
+        color: var(--success);
+        border: 1px solid var(--success);
+    }
+
+    .status-rejected {
+        background: var(--danger-light);
+        color: var(--danger);
+        border: 1px solid var(--danger);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+
+        .requests-table th,
+        .requests-table td {
+            padding: 16px 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .requests-container {
+            padding: 16px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .header-content .page-title {
+            font-size: 24px;
+        }
+
+        .requests-table {
+            font-size: 14px;
+        }
+
+        .requests-table th,
+        .requests-table td {
+            padding: 12px 16px;
+        }
+
+        .date-display .date {
+            font-size: 13px;
+        }
+
+        .date-display .time {
+            font-size: 11px;
+        }
+
+        .reason-cell .reason-text {
+            max-width: 200px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .table-container {
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .requests-table thead {
+            display: none;
+        }
+
+        .requests-table tbody tr {
+            display: block;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .requests-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .requests-table td {
+            display: block;
+            padding: 8px 0;
+            border: none;
+            text-align: left;
+        }
+
+        .requests-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .date-cell::before {
+            content: "Request Date";
+        }
+
+        .course-cell::before {
+            content: "Course";
+        }
+
+        .target-cell::before {
+            content: "Target Date";
+        }
+
+        .reason-cell::before {
+            content: "Reason";
+        }
+
+        .type-cell::before {
+            content: "Type";
+        }
+
+        .status-cell::before {
+            content: "Status";
+        }
+
+        .status-badge,
+        .type-badge {
+            display: inline-block;
+        }
+
+        .reason-cell .reason-text {
+            max-width: none;
+        }
+    }
+</style>

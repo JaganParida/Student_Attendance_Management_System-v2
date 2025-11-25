@@ -1,0 +1,211 @@
+<div class="attendance-container">
+    <!-- HEADER -->
+    <div class="attendance-header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-{{ isUpdateMode ? 'edit' : 'clipboard-check' }} me-2"></i>
+                <h1>{{ isUpdateMode ? 'Edit Attendance' : 'Mark Attendance' }}</h1>
+            </div>
+            <button class="btn btn-back" routerLink="/teacher/dashboard">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="control-card" *ngIf="!isLocked">
+        <div class="card-body">
+            <div class="control-grid">
+                <div class="control-group">
+                    <label class="control-label">COURSE</label>
+                    <select class="form-control" [(ngModel)]="selectedCourseId" (change)="onCourseSelect()">
+                        <option [ngValue]="null">-- Select Course --</option>
+                        <option *ngFor="let c of courses" [value]="c.id">{{ c.courseName }}</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">DATE</label>
+                    <input type="date" class="form-control" [(ngModel)]="attendanceDate" (change)="onCourseSelect()">
+                </div>
+
+                <div class="control-status">
+                    <span *ngIf="isUpdateMode" class="status-badge edit-mode">
+                        <i class="fas fa-edit me-1"></i>
+                        Edit Mode
+                    </span>
+                    <span *ngIf="!isUpdateMode && selectedCourseId" class="status-badge new-entry">
+                        <i class="fas fa-plus me-1"></i>
+                        New Entry
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fas fa-check-circle me-2"></i>
+        {{ successMessage }}
+    </div>
+
+    <!-- LOADING STATE -->
+    <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading attendance data...</p>
+    </div>
+
+    <!-- LOCKED STATE -->
+    <div *ngIf="!isLoading && isLocked" class="locked-card">
+        <div class="card-body">
+            <div class="locked-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>{{ isUpdateMode ? 'Editing Locked' : 'Attendance Locked' }}</h2>
+            <p class="locked-message">
+                The 15-minute window has expired.<br>
+                You cannot access the student list without admin approval.
+            </p>
+
+            <div class="unlock-form">
+                <label class="form-label">Reason for Delay</label>
+                <textarea [(ngModel)]="unlockReason" class="form-control" rows="3"
+                    placeholder="Please provide a reason for the delay (e.g., Network issue, Class extended, Technical problem...)"></textarea>
+
+                <button class="btn btn-unlock" (click)="sendUnlockRequest()">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Send Unlock Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE TABLE -->
+    <div *ngIf="!isLoading && !isLocked && attendanceList.length > 0" class="attendance-card">
+        <form [formGroup]="attendanceForm" (ngSubmit)="onPreSubmit()">
+            <!-- BULK ACTIONS -->
+            <div class="bulk-actions">
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-bulk present" (click)="markAll('PRESENT')">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Mark All Present
+                    </button>
+                    <button type="button" class="btn btn-bulk absent" (click)="markAll('ABSENT')">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Mark All Absent
+                    </button>
+                </div>
+            </div>
+
+            <!-- STUDENTS TABLE -->
+            <div class="table-container">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th class="col-roll">Roll No</th>
+                            <th class="col-name">Student Name</th>
+                            <th class="col-status">Attendance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody formArrayName="attendanceList">
+                        <tr *ngFor="let row of attendanceList.controls; let i = index" [formGroupName]="i"
+                            [class.absent-row]="row.value.status === 'ABSENT'">
+                            <td class="roll-number">
+                                <span class="roll-badge">{{ row.value.rollNumber }}</span>
+                            </td>
+                            <td class="student-name">
+                                {{ row.value.studentName }}
+                            </td>
+                            <td class="status-options">
+                                <div class="status-buttons">
+                                    <label class="status-option present">
+                                        <input type="radio" formControlName="status" value="PRESENT" [id]="'p'+i"
+                                            (change)="calculateStats()">
+                                        <span class="option-content">
+                                            <i class="fas fa-check"></i>
+                                            Present
+                                        </span>
+                                    </label>
+
+                                    <label class="status-option absent">
+                                        <input type="radio" formControlName="status" value="ABSENT" [id]="'a'+i"
+                                            (change)="calculateStats()">
+                                        <span class="option-content">
+                                            <i class="fas fa-times"></i>
+                                            Absent
+                                        </span>
+                                    </label>
+
+                                    <label class="status-option late">
+                                        <input type="radio" formControlName="status" value="LATE" [id]="'l'+i"
+                                            (change)="calculateStats()">
+                                        <span class="option-content">
+                                            <i class="fas fa-clock"></i>
+                                            Late
+                                        </span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="attendance-footer">
+                <div class="stats">
+                    <div class="stat-item present">
+                        <span class="stat-count">{{ totalPresent }}</span>
+                        <span class="stat-label">Present</span>
+                    </div>
+                    <div class="stat-item absent">
+                        <span class="stat-count">{{ totalAbsent }}</span>
+                        <span class="stat-label">Absent</span>
+                    </div>
+                    <div class="stat-item total">
+                        <span class="stat-count">{{ totalPresent + totalAbsent }}</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit" [disabled]="isSubmitting">
+                    <span *ngIf="isSubmitting" class="spinner-small"></span>
+                    <i *ngIf="!isSubmitting" class="fas fa-{{ isUpdateMode ? 'save' : 'paper-plane' }} me-2"></i>
+                    {{ isUpdateMode ? 'Update Attendance' : 'Submit Attendance' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal-backdrop" *ngIf="showConfirmModal"></div>
+<div class="modal-container" *ngIf="showConfirmModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i class="fas fa-envelope modal-icon"></i>
+            <h3>Notify Parents?</h3>
+        </div>
+
+        <div class="modal-body">
+            <p>You're marking <strong>{{ totalAbsent }} students</strong> as absent.</p>
+            <p>Would you like to send email notifications to their parents?</p>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-cancel" (click)="submitFinal(false)">
+                Don't Send
+            </button>
+            <button class="btn btn-confirm" (click)="submitFinal(true)">
+                <i class="fas fa-paper-plane me-2"></i>
+                Send Emails
+            </button>
+        </div>
+    </div>
+</div>

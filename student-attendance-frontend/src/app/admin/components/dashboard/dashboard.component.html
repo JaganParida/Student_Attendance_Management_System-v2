@@ -1,0 +1,545 @@
+<div class="admin-dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="page-title">Admin Dashboard</h1>
+            <p class="page-subtitle">Welcome to the Student Attendance Management System</p>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading && dashboardData" class="dashboard-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div *ngFor="let card of [0,1,2,3]; let i = index" class="stat-card"
+                [ngClass]="'stat-card-' + getCardColor(i)">
+                <div class="stat-icon">
+                    <i [class]="getIcon(i)"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ getCardValue(i) | number }}</h3>
+                    <p class="stat-label">{{ getCardTitle(i) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Quick Actions</h2>
+                <p class="section-subtitle">Manage system components efficiently</p>
+            </div>
+            <div class="actions-grid">
+                <a [routerLink]="['/admin/teachers']" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Manage Teachers</h3>
+                        <p>Add, edit, or remove teacher accounts</p>
+                    </div>
+                    <i class="fas fa-chevron-right action-arrow"></i>
+                </a>
+
+                <a [routerLink]="['/admin/students']" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Manage Students</h3>
+                        <p>Manage student accounts and enrollments</p>
+                    </div>
+                    <i class="fas fa-chevron-right action-arrow"></i>
+                </a>
+
+                <a [routerLink]="['/admin/courses']" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Manage Courses</h3>
+                        <p>Create and manage courses and subjects</p>
+                    </div>
+                    <i class="fas fa-chevron-right action-arrow"></i>
+                </a>
+
+                <a [routerLink]="['/admin/unlock-requests']" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-unlock"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Unlock Requests</h3>
+                        <p>Review teacher attendance unlock requests</p>
+                    </div>
+                    <i class="fas fa-chevron-right action-arrow"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Activity</h2>
+                <p class="section-subtitle">Latest system activities and updates</p>
+            </div>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-icon success">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text"><strong>New teacher</strong> account created</p>
+                        <span class="activity-time">2 hours ago</span>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon primary">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text"><strong>Attendance report</strong> generated for Class 10A</p>
+                        <span class="activity-time">5 hours ago</span>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon warning">
+                        <i class="fas fa-unlock-alt"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text"><strong>Unlock request</strong> approved for Mr. Smith</p>
+                        <span class="activity-time">1 day ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Design System Variables - Consistent with Previous Components */
+    :host {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+        --info: #06b6d4;
+        --info-light: #ecfeff;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --bg-light: #f8fafc;
+        --white: #ffffff;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius: 12px;
+    }
+
+    .admin-dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* Dashboard Header */
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .header-content .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+    }
+
+    .header-content .page-subtitle {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 16px;
+    }
+
+    /* Error Message */
+    .error-message {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        background: var(--danger-light);
+        color: var(--danger);
+        border-radius: var(--radius);
+        margin-bottom: 24px;
+        font-weight: 500;
+    }
+
+    .error-message i {
+        font-size: 18px;
+    }
+
+    /* Loading State */
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--primary-light);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-state p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Dashboard Content */
+    .dashboard-content {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .stat-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* Stat Card Colors */
+    .stat-card-0 .stat-icon {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .stat-card-1 .stat-icon {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .stat-card-2 .stat-icon {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+
+    .stat-card-3 .stat-icon {
+        background: var(--info-light);
+        color: var(--info);
+    }
+
+    /* Sections */
+    .section {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 32px;
+    }
+
+    .section-header {
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        color: var(--text-dark);
+    }
+
+    .section-subtitle {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Quick Actions */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .action-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        background: var(--bg-light);
+        border-radius: var(--radius);
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .action-card:hover {
+        background: var(--white);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .action-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--primary-light);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 20px;
+    }
+
+    .action-content {
+        flex: 1;
+    }
+
+    .action-content h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        color: var(--text-dark);
+    }
+
+    .action-content p {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .action-arrow {
+        color: var(--text-muted);
+        transition: transform 0.2s ease;
+    }
+
+    .action-card:hover .action-arrow {
+        transform: translateX(4px);
+        color: var(--primary);
+    }
+
+    /* Recent Activity */
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background: var(--bg-light);
+        border-radius: var(--radius);
+        transition: background-color 0.2s ease;
+    }
+
+    .activity-item:hover {
+        background: var(--white);
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .activity-icon.success {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .activity-icon.primary {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .activity-icon.warning {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        color: var(--text-dark);
+        line-height: 1.4;
+    }
+
+    .activity-time {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-dashboard {
+            padding: 16px;
+        }
+
+        .dashboard-header {
+            margin-bottom: 24px;
+        }
+
+        .header-content .page-title {
+            font-size: 24px;
+        }
+
+        .section {
+            padding: 24px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 20px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+        }
+
+        .action-card {
+            padding: 16px;
+        }
+
+        .action-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .admin-dashboard {
+            padding: 12px;
+        }
+
+        .section {
+            padding: 20px;
+        }
+
+        .activity-item {
+            padding: 12px;
+        }
+
+        .action-content h3 {
+            font-size: 15px;
+        }
+
+        .action-content p {
+            font-size: 13px;
+        }
+    }
+</style>

@@ -1,0 +1,176 @@
+<div class="attendance-reports">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Attendance Reports</h1>
+        <p>View and analyze attendance data across classes and courses</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section card">
+        <h3>Filter Reports</h3>
+        <form [formGroup]="filterForm" class="filters-grid">
+            <div class="form-group">
+                <label class="form-label">Class</label>
+                <select formControlName="class" class="form-control">
+                    <option *ngFor="let class of classes" [value]="class">{{ class }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Course</label>
+                <select formControlName="course" class="form-control">
+                    <option *ngFor="let course of courses" [value]="course">{{ course }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date Range</label>
+                <select formControlName="dateRange" class="form-control">
+                    <option *ngFor="let range of dateRanges" [value]="range">{{ range }}</option>
+                </select>
+            </div>
+
+            <div class="form-group" *ngIf="filterForm.get('dateRange')?.value === 'Custom'">
+                <label class="form-label">Start Date</label>
+                <input type="date" formControlName="startDate" class="form-control">
+            </div>
+
+            <div class="form-group" *ngIf="filterForm.get('dateRange')?.value === 'Custom'">
+                <label class="form-label">End Date</label>
+                <input type="date" formControlName="endDate" class="form-control">
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" (click)="generateReport()"
+                    [disabled]="isGeneratingReport">
+                    <app-loading-spinner *ngIf="isGeneratingReport" size="sm" message="" [overlay]="false">
+                    </app-loading-spinner>
+                    <span *ngIf="!isGeneratingReport">
+                        <i class="fas fa-download"></i>
+                        Generate Report
+                    </span>
+                    <span *ngIf="isGeneratingReport">Generating...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Reports Summary -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-icon total-classes">
+                <i class="fas fa-chalkboard"></i>
+            </div>
+            <div class="summary-content">
+                <h3>{{ getUniqueClasses().length }}</h3>
+                <p>Classes Tracked</p>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon total-records">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="summary-content">
+                <h3>{{ filteredReports.length }}</h3>
+                <p>Attendance Records</p>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon avg-attendance">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="summary-content">
+                <h3>{{ getAverageAttendance() }}%</h3>
+                <p>Average Attendance</p>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon total-students">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="summary-content">
+                <h3>{{ getTotalStudents() }}</h3>
+                <p>Total Students</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports List -->
+    <div class="reports-list card">
+        <div class="card-header">
+            <h3>Attendance Records ({{ filteredReports.length }})</h3>
+        </div>
+
+        <app-loading-spinner *ngIf="isLoading" message="Loading attendance reports..." [overlay]="false">
+        </app-loading-spinner>
+
+        <div *ngIf="!isLoading && filteredReports.length === 0" class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <h4>No attendance records found</h4>
+            <p>Try adjusting your filters or check back later</p>
+        </div>
+
+        <div *ngIf="!isLoading && filteredReports.length > 0" class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Course</th>
+                        <th>Teacher</th>
+                        <th>Date</th>
+                        <th>Students</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let report of filteredReports">
+                        <td>
+                            <strong>{{ report.className }}</strong>
+                        </td>
+                        <td>{{ report.courseName }}</td>
+                        <td>
+                            <div class="teacher-info">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                {{ report.teacherName }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ report.date | dateFormat:'short' }}</span>
+                        </td>
+                        <td>{{ report.totalStudents }}</td>
+                        <td>
+                            <span class="present-count">{{ report.presentCount }}</span>
+                        </td>
+                        <td>
+                            <span class="absent-count">{{ report.absentCount }}</span>
+                        </td>
+                        <td>
+                            <div class="attendance-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"
+                                        [class]="'progress-' + getAttendanceColor(report.attendancePercentage)"
+                                        [style.width.%]="report.attendancePercentage">
+                                    </div>
+                                </div>
+                                <span class="percentage">{{ report.attendancePercentage }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="status-badge"
+                                [class]="'status-' + getAttendanceColor(report.attendancePercentage)">
+                                <i [class]="getAttendanceIcon(report.attendancePercentage)"></i>
+                                {{ getStatusText(report.attendancePercentage) }}
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

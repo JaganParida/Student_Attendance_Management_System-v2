@@ -1,0 +1,255 @@
+<div class="maintenance-container">
+    <div class="maintenance-content">
+        <!-- Icon -->
+        <div class="maintenance-icon">
+            <div class="icon-wrapper">
+                <i class="fas fa-tools"></i>
+            </div>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="maintenance-title">Under Maintenance</h1>
+
+        <!-- Subtext -->
+        <p class="maintenance-description">
+            We're currently working on this page to bring you an amazing experience.
+            Please check back soon!
+        </p>
+
+        <!-- Progress Indicator -->
+        <div class="progress-section">
+            <div class="progress-info">
+                <span class="progress-text">Estimated completion</span>
+                <span class="progress-percentage">65%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="action-buttons">
+            <button class="btn-secondary" (click)="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                Go Back
+            </button>
+            <button class="btn-primary" routerLink="/admin/dashboard">
+                <i class="fas fa-home"></i>
+                Dashboard
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Design System Variables - Matching Previous Dashboard */
+    :host {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --secondary: #64748b;
+        --secondary-light: #f8fafc;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --white: #ffffff;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius: 12px;
+    }
+
+    .maintenance-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--secondary-light);
+        padding: 24px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .maintenance-content {
+        text-align: center;
+        max-width: 440px;
+        width: 100%;
+        padding: 48px 40px;
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+    }
+
+    /* Maintenance Icon */
+    .maintenance-icon {
+        margin-bottom: 32px;
+    }
+
+    .icon-wrapper {
+        width: 100px;
+        height: 100px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border: 2px solid var(--primary);
+    }
+
+    .icon-wrapper i {
+        font-size: 40px;
+        color: var(--primary);
+    }
+
+    /* Typography */
+    .maintenance-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+        line-height: 1.2;
+    }
+
+    .maintenance-description {
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text-muted);
+        margin-bottom: 32px;
+        max-width: 360px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Progress Section */
+    .progress-section {
+        margin-bottom: 40px;
+        max-width: 280px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .progress-text {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .progress-percentage {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: var(--border);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        width: 65%;
+        background: var(--primary);
+        border-radius: 3px;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background: #3a56d4;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--secondary-light);
+        border-color: var(--secondary);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 640px) {
+        .maintenance-content {
+            padding: 40px 32px;
+            margin: 20px;
+        }
+
+        .maintenance-title {
+            font-size: 24px;
+        }
+
+        .maintenance-description {
+            font-size: 15px;
+        }
+
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+        }
+
+        .icon-wrapper i {
+            font-size: 32px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            max-width: 200px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .maintenance-content {
+            padding: 32px 24px;
+        }
+
+        .maintenance-title {
+            font-size: 22px;
+        }
+
+        .maintenance-description {
+            font-size: 14px;
+        }
+    }
+</style>

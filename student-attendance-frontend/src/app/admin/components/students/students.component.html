@@ -1,0 +1,202 @@
+<div class="students-management">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Students Management</h1>
+        <p>Manage all students in the system</p>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        {{ successMessage }}
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()"
+                placeholder="Search by name, email, or roll number..." class="search-input" />
+        </div>
+        <button class="btn btn-primary" (click)="addStudent()" [disabled]="isAddingStudent">
+            <i class="fas fa-plus"></i>
+            Add Student
+        </button>
+    </div>
+
+    <!-- Add/Edit Student Form -->
+    <div *ngIf="isAddingStudent" class="add-student-form card slide-in">
+        <h3>{{ isEditing ? 'Edit Student' : 'Add New Student' }}</h3>
+
+        <form [formGroup]="studentForm" (ngSubmit)="onSubmitStudent()" class="form-grid">
+            <!-- Name -->
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" formControlName="name" class="form-control" placeholder="e.g., John Doe"
+                    [class.error]="name?.invalid && name?.touched" />
+                <div *ngIf="name?.invalid && name?.touched" class="error-message">
+                    <span *ngIf="name?.errors?.['required']">Name is required</span>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                <input type="email" formControlName="email" class="form-control"
+                    placeholder="e.g., john.doe@example.com" [class.error]="email?.invalid && email?.touched" />
+                <div *ngIf="email?.invalid && email?.touched" class="error-message">
+                    <span *ngIf="email?.errors?.['required']">Email is required</span>
+                    <span *ngIf="email?.errors?.['email']">Must be a valid email</span>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label class="form-label">
+                    {{ isEditing ? 'New Password (Optional)' : 'Password *' }}
+                </label>
+                <input type="password" formControlName="password" class="form-control"
+                    [placeholder]="isEditing ? 'Leave blank to keep unchanged' : 'Min 6 characters'"
+                    [class.error]="password?.invalid && password?.touched" />
+                <div *ngIf="password?.invalid && password?.touched" class="error-message">
+                    <span *ngIf="password?.errors?.['required']">Password is required</span>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" formControlName="phone" class="form-control" placeholder="e.g., 9876543210"
+                    [class.error]="phone?.invalid && phone?.touched" />
+                <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
+                    <span *ngIf="phone?.errors?.['required']">Phone is required</span>
+                </div>
+            </div>
+
+            <!-- Roll Number -->
+            <div class="form-group">
+                <label class="form-label">Roll Number *</label>
+                <input type="text" formControlName="rollNumber" class="form-control" placeholder="e.g., S101"
+                    [class.error]="rollNumber?.invalid && rollNumber?.touched" />
+                <div *ngIf="rollNumber?.invalid && rollNumber?.touched" class="error-message">
+                    <span *ngIf="rollNumber?.errors?.['required']">Roll number is required</span>
+                </div>
+            </div>
+
+            <!-- Parent Email -->
+            <div class="form-group">
+                <label class="form-label">Parent's Email</label>
+                <input type="email" formControlName="parentEmail" class="form-control"
+                    placeholder="e.g., parent@example.com"
+                    [class.error]="parentEmail?.invalid && parentEmail?.touched" />
+                <div *ngIf="parentEmail?.invalid && parentEmail?.touched" class="error-message">
+                    <span *ngIf="parentEmail?.errors?.['email']">Must be a valid email</span>
+                </div>
+            </div>
+
+            <!-- Assign to Class -->
+            <div class="form-group">
+                <label class="form-label">Assign to Class *</label>
+                <select formControlName="classId" class="form-control"
+                    [class.error]="classId?.invalid && classId?.touched">
+                    <option [ngValue]="null" disabled>Select Class</option>
+                    <option *ngFor="let cls of classes" [value]="cls.id">
+                        {{ cls.name }}
+                    </option>
+                </select>
+                <div *ngIf="classId?.invalid && classId?.touched" class="error-message">
+                    <span *ngIf="classId?.errors?.['required']">Class assignment is required</span>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions full-width">
+                <button type="button" class="btn btn-outline" (click)="cancelAddStudent()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="studentForm.invalid">
+                    {{ isEditing ? 'Update Student' : 'Add Student' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Students List -->
+    <div class="students-list card">
+        <div class="card-header">
+            <h3>Students ({{ filteredStudents.length }})</h3>
+        </div>
+
+        <app-loading-spinner *ngIf="isLoading" message="Loading students..." [overlay]="false">
+        </app-loading-spinner>
+
+        <div *ngIf="!isLoading && filteredStudents.length === 0" class="empty-state">
+            <i class="fas fa-user-graduate"></i>
+            <h4>No students found</h4>
+            <p *ngIf="searchTerm">Try adjusting your search terms</p>
+            <p *ngIf="!searchTerm">Get started by adding your first student</p>
+        </div>
+
+        <div *ngIf="!isLoading && filteredStudents.length > 0" class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roll Number</th>
+                        <th>Class</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let student of filteredStudents">
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">{{ student.name.charAt(0) }}</div>
+                                <div>
+                                    <strong>{{ student.name }}</strong>
+                                    <p class="text-muted">{{ student.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td><strong class="roll-number">{{ student.rollNumber }}</strong></td>
+                        <td>
+                            <span class="class-badge" *ngIf="student.classEntity">
+                                {{ student.classEntity.className }} - {{ student.classEntity.section }}
+                            </span>
+                            <span *ngIf="!student.classEntity" class="text-muted">Not Assigned</span>
+                        </td>
+                        <td>
+                            <div>
+                                {{ student.phone }}
+                                <p class="text-muted" *ngIf="student.parentEmail">
+                                    Parent: {{ student.parentEmail }}
+                                </p>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" title="Edit" (click)="editStudent(student)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-danger" title="Delete"
+                                    (click)="confirmDeleteStudent(student)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <app-confirmation-dialog [show]="showConfirmation" title="Delete Student"
+        [message]="'Are you sure you want to delete ' + (studentToDelete?.name || 'this student') + '?'"
+        confirmText="Delete" cancelText="Cancel" type="danger" (confirmed)="onDeleteConfirmed()"
+        (cancelled)="onDeleteCancelled()">
+    </app-confirmation-dialog>
+</div>

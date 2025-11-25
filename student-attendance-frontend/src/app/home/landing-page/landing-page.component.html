@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./landing-page.component.css">
+</head>
+
+<body>
+    <div id="attendance-system">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>AttendancePro</span>
+                </a>
+
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-link">Home</a></li>
+                    <li><a href="#features" class="nav-link">Features</a></li>
+                    <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+                    <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
+                    <li><a href="#contact" class="nav-link">Contact</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <a routerLink="/auth/login" class="btn btn-primary">Login</a>
+                    <div class="hamburger">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1>Streamline Student <span>Attendance Tracking</span> with Ease</h1>
+                    <p>Your centralized platform for secure, efficient tracking of student attendance records across all
+                        courses and classes.</p>
+                    <div class="hero-buttons">
+                        <a routerLink="/auth/login" class="btn btn-primary">Login to Dashboard</a>
+                        <a href="#" class="btn btn-secondary">Learn More</a>
+                    </div>
+                    <p class="small-text">For administration or teacher access, please use your assigned credentials.
+                    </p>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1580894894513-541e068a3e2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Student Attendance System">
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="section-title">
+                <h2>Powerful Features for Every User</h2>
+                <p>Our comprehensive attendance management system caters to administrators, teachers, and students</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Admin Features -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3>Admin Features</h3>
+                    <p>Complete control over the attendance ecosystem</p>
+                    <ul class="feature-list">
+                        <li>Secure JWT authentication</li>
+                        <li>Dashboard with analytics</li>
+                        <li>Manage teacher & student accounts</li>
+                        <li>Create and manage courses</li>
+                        <li>Assign subjects to teachers</li>
+                        <li>View detailed attendance reports</li>
+                        <li>Configure attendance rules</li>
+                        <li>Approve/reject unlock requests</li>
+                    </ul>
+                </div>
+
+                <!-- Teacher Features -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h3>Teacher Features</h3>
+                    <p>Efficient tools for classroom management</p>
+                    <ul class="feature-list">
+                        <li>Secure JWT authentication</li>
+                        <li>Today's scheduled classes</li>
+                        <li>Mark attendance within 15-minute window</li>
+                        <li>Send parent email alerts for absentees</li>
+                        <li>Edit attendance within 2 days</li>
+                        <li>Request attendance unlocks</li>
+                        <li>View student performance</li>
+                        <li>Approve student requests</li>
+                    </ul>
+                </div>
+
+                <!-- Student Features -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3>Student Features</h3>
+                    <p>Transparent access to attendance records</p>
+                    <ul class="feature-list">
+                        <li>Secure JWT authentication</li>
+                        <li>Course-wise attendance dashboard</li>
+                        <li>Attendance percentage tracking</li>
+                        <li>Filter by academic year & semester</li>
+                        <li>View detailed daily attendance</li>
+                        <li>Download study materials</li>
+                        <li>Request attendance corrections</li>
+                        <li>Track request status</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="section-title">
+                <h2>How It Works</h2>
+                <p>Simple three-step process to manage attendance efficiently</p>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Mark Attendance</h3>
+                    <p>Teachers mark attendance within 15 minutes of class start time with optional parent notifications
+                        for absent students.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Review & Edit</h3>
+                    <p>Attendance can be edited within 2 days. Outside this window, teachers can request admin approval
+                        for changes.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Track & Analyze</h3>
+                    <p>Students and administrators can view detailed reports and analytics to track attendance patterns
+                        and performance.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials" id="testimonials">
+            <div class="section-title">
+                <h2>What Our Users Say</h2>
+                <p>Hear from administrators, teachers, and students using our system</p>
+            </div>
+
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "This system has revolutionized how we track attendance. The automated parent notifications have
+                        significantly improved student punctuality."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JS</div>
+                        <div class="author-info">
+                            <h4>John Smith</h4>
+                            <p>School Administrator</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "Marking attendance is now a breeze. I love that I can do it right from my phone and the system
+                        reminds me if I forget."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">MJ</div>
+                        <div class="author-info">
+                            <h4>Maria Johnson</h4>
+                            <p>Mathematics Teacher</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "I can easily check my attendance for each subject and request corrections when needed. It's
+                        transparent and user-friendly."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AD</div>
+                        <div class="author-info">
+                            <h4>Alex Davis</h4>
+                            <p>College Student</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="cta-content">
+                <h2>Ready to Transform Your Attendance Management?</h2>
+                <p>Join hundreds of educational institutions using our system to streamline attendance tracking and
+                    improve student engagement.</p>
+                <a href="#" class="btn">Get Started Today</a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer" id="contact">
+            <div class="footer-container">
+                <div class="footer-col">
+                    <h3>AttendancePro</h3>
+                    <p>Streamlining student attendance management for educational institutions of all sizes.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#testimonials">Testimonials</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Features</h3>
+                    <ul>
+                        <li><a href="#">Admin Dashboard</a></li>
+                        <li><a href="#">Teacher Portal</a></li>
+                        <li><a href="#">Student Portal</a></li>
+                        <li><a href="#">Attendance Reports</a></li>
+                        <li><a href="#">Parent Notifications</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Education Street, Campus City</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info&#64;attendancepro.com</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="copyright">
+                <p>&copy; 2023 AttendancePro. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function () {
+            const navbar = document.querySelector('#attendance-system .navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile menu toggle
+        const hamburger = document.querySelector('#attendance-system .hamburger');
+        const navMenu = document.querySelector('#attendance-system .nav-menu');
+
+        hamburger.addEventListener('click', function () {
+            navMenu.classList.toggle('active');
+            hamburger.querySelector('i').classList.toggle('fa-bars');
+            hamburger.querySelector('i').classList.toggle('fa-times');
+        });
+
+        // Close mobile menu when clicking on a link
+        const navLinks = document.querySelectorAll('#attendance-system .nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                navMenu.classList.remove('active');
+                hamburger.querySelector('i').classList.add('fa-bars');
+                hamburger.querySelector('i').classList.remove('fa-times');
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('#attendance-system a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Animation on scroll
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('#attendance-system .section-title, #attendance-system .feature-card, #attendance-system .step, #attendance-system .testimonial-card');
+
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.style.opacity = "1";
+                    element.style.transform = "translateY(0)";
+                }
+            });
+        }
+
+        // Initial call and scroll event listener
+        window.addEventListener('scroll', animateOnScroll);
+        window.addEventListener('load', animateOnScroll);
+    </script>
+</body>
+
+</html>

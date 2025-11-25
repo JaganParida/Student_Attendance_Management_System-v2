@@ -1,0 +1,117 @@
+<div class="study-materials">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Study Materials</h1>
+        <p>Access course materials, resources, and learning materials uploaded by your teachers</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section card">
+        <div class="filters-grid">
+            <div class="form-group">
+                <label class="form-label">Course</label>
+                <select [(ngModel)]="selectedCourse" (change)="onFilterChange()" class="form-control">
+                    <option *ngFor="let course of courses" [value]="course">
+                        {{ course }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">File Type</label>
+                <select [(ngModel)]="selectedType" (change)="onFilterChange()" class="form-control">
+                    <option *ngFor="let type of types" [value]="type">
+                        {{ type }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Search</label>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" [(ngModel)]="searchTerm" (input)="onFilterChange()"
+                        placeholder="Search materials..." class="search-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-stats">
+            <div class="stats-info">
+                <span class="stat">
+                    <strong>{{ filteredMaterials.length }}</strong> materials found
+                </span>
+                <span class="stat" *ngIf="selectedCourse !== 'All'">
+                    in <strong>{{ selectedCourse }}</strong>
+                </span>
+                <span class="stat">
+                    Total size: <strong>{{ getTotalSize() }}</strong>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <app-loading-spinner *ngIf="isLoading" message="Loading study materials..." [overlay]="false">
+    </app-loading-spinner>
+
+    <!-- Materials Grid -->
+    <div *ngIf="!isLoading" class="materials-section">
+        <div class="section-header">
+            <h2>Available Materials</h2>
+            <p>Download or view study materials for your courses</p>
+        </div>
+
+        <div *ngIf="filteredMaterials.length === 0" class="empty-state card">
+            <i class="fas fa-folder-open"></i>
+            <h4>No study materials found</h4>
+            <p *ngIf="selectedCourse !== 'All' || selectedType !== 'All' || searchTerm">
+                Try adjusting your filters or search terms
+            </p>
+            <p *ngIf="selectedCourse === 'All' && selectedType === 'All' && !searchTerm">
+                No study materials have been uploaded yet
+            </p>
+        </div>
+
+        <div *ngIf="filteredMaterials.length > 0" class="materials-grid">
+            <div *ngFor="let material of filteredMaterials" class="material-card card">
+                <div class="material-header">
+                    <div class="file-icon" [class]="getFileColor(material.type)">
+                        <i [class]="getFileIcon(material.type)"></i>
+                    </div>
+                    <div class="material-info">
+                        <h3 class="material-title">{{ material.title }}</h3>
+                        <div class="material-meta">
+                            <span class="course-badge">{{ material.course }} ({{ material.courseCode }})</span>
+                            <span class="file-type">{{ material.type }}</span>
+                            <span class="file-size" *ngIf="material.fileSize">{{ material.fileSize }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="material-description">
+                    <p>{{ material.description }}</p>
+                </div>
+
+                <div class="material-footer">
+                    <div class="upload-info">
+                        <span class="uploaded-by">Uploaded by {{ material.uploadedBy }}</span>
+                        <span class="upload-date">{{ material.uploadDate | dateFormat:'short' }}</span>
+                    </div>
+
+                    <div class="material-actions">
+                        <button class="btn btn-outline btn-sm" (click)="viewMaterial(material)"
+                            *ngIf="material.type !== 'LINK'">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </button>
+                        <button class="btn btn-primary btn-sm" (click)="downloadMaterial(material)">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

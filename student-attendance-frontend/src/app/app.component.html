@@ -1,0 +1,14 @@
+<div class="app-container">
+  <!-- Header -->
+  <app-header *ngIf="showHeader"></app-header>
+
+  <div class="main-content" [class.with-sidebar]="showSidebar">
+    <!-- Sidebar -->
+    <app-sidebar *ngIf="showSidebar" [isCollapsed]="false"></app-sidebar>
+
+    <!-- Main Content Area -->
+    <div class="content-area" [class.with-sidebar]="showSidebar">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

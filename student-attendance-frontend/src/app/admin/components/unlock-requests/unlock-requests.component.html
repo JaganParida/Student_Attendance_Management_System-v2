@@ -1,0 +1,134 @@
+<div class="unlock-requests">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Unlock Requests</h1>
+        <p>Review and manage teacher requests for attendance marking and editing</p>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <div class="filters">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()"
+                    placeholder="Search by teacher, course, or class..." class="search-input">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Status:</label>
+                <select [(ngModel)]="statusFilter" (change)="onStatusFilterChange()" class="filter-select">
+                    <option *ngFor="let option of statusOptions" [value]="option.value">
+                        {{ option.label }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats">
+            <span class="stat-item pending">
+                <strong>{{ getPendingCount() }}</strong> Pending
+            </span>
+            <span class="stat-item approved">
+                <strong>{{ getApprovedCount() }}</strong> Approved
+            </span>
+            <span class="stat-item rejected">
+                <strong>{{ getRejectedCount() }}</strong> Rejected
+            </span>
+        </div>
+    </div>
+
+    <!-- Requests List -->
+    <div class="requests-list">
+        <app-loading-spinner *ngIf="isLoading" message="Loading unlock requests..." [overlay]="false">
+        </app-loading-spinner>
+
+        <div *ngIf="!isLoading && filteredRequests.length === 0" class="empty-state card">
+            <i class="fas fa-unlock-alt"></i>
+            <h4>No unlock requests found</h4>
+            <p *ngIf="searchTerm || statusFilter !== 'ALL'">Try adjusting your filters</p>
+            <p *ngIf="!searchTerm && statusFilter === 'ALL'">No requests have been submitted yet</p>
+        </div>
+
+        <div *ngIf="!isLoading && filteredRequests.length > 0" class="requests-grid">
+            <div *ngFor="let request of filteredRequests" class="request-card card">
+
+                <div class="request-header">
+                    <div class="request-type">
+                        <i [class]="getRequestTypeIcon(request.requestType)"></i>
+                        <span>{{ getRequestTypeText(request.requestType) }}</span>
+                    </div>
+                    <div class="request-status" [class]="'status-' + getStatusColor(request.status)">
+                        <i [class]="getStatusIcon(request.status)"></i>
+                        {{ request.status }}
+                    </div>
+                </div>
+
+                <div class="request-details">
+                    <!-- Row 1: Teacher Info -->
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <span class="label">Teacher:</span>
+                            <span class="value">{{ request.teacherName }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">ID:</span>
+                            <span class="value">{{ request.teacherId }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Course Info -->
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <span class="label">Course:</span>
+                            <span class="value">{{ request.courseName }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Class:</span>
+                            <span class="value">{{ request.className }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Date -->
+                    <div class="detail-row full-width">
+                        <div class="detail-item">
+                            <span class="label">Date to Unlock:</span>
+                            <!-- ✅ Updated to use standard DatePipe -->
+                            <span class="value highlight">{{ request.date | date:'mediumDate' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Reason -->
+                    <div class="reason-section">
+                        <span class="label">Reason:</span>
+                        <p class="reason-text">"{{ request.reason }}"</p>
+                    </div>
+
+                    <!-- Row 5: Meta -->
+                    <div class="request-meta">
+                        <span class="requested-at">
+                            <i class="far fa-clock"></i> Requested: {{ request.requestedAt | date:'medium' }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="request-actions" *ngIf="request.status === 'PENDING'">
+                    <button class="btn btn-success btn-sm" (click)="confirmAction(request, 'approve')">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-danger btn-sm" (click)="confirmAction(request, 'reject')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <app-confirmation-dialog [show]="showConfirmation"
+        [title]="(currentAction === 'approve' ? 'Approve' : 'Reject') + ' Request'" [message]="getConfirmationMessage()"
+        [confirmText]="currentAction === 'approve' ? 'Approve' : 'Reject'" [cancelText]="'Cancel'"
+        [type]="currentAction === 'approve' ? 'info' : 'danger'" (confirmed)="onActionConfirmed()"
+        (cancelled)="onActionCancelled()">
+    </app-confirmation-dialog>
+</div>

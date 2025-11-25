@@ -1,0 +1,78 @@
+<header class="header">
+    <div class="header-container">
+        <!-- Logo -->
+        <div class="logo-section">
+            <a [routerLink]="getDashboardRoute()" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span class="logo-text">Attendance System</span>
+            </a>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav-section" [class.active]="isMenuOpen">
+            <div class="nav-items">
+                <a *ngIf="currentUser?.role === 'ADMIN'" [routerLink]="['/admin/dashboard']" class="nav-item"
+                    routerLinkActive="active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a *ngIf="currentUser?.role === 'TEACHER'" [routerLink]="['/teacher/dashboard']" class="nav-item"
+                    routerLinkActive="active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a *ngIf="currentUser?.role === 'STUDENT'" [routerLink]="['/student/dashboard']" class="nav-item"
+                    routerLinkActive="active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- User Menu -->
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <div class="avatar-circle">
+                        {{ getUserDisplayName().charAt(0) }}
+                    </div>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ getUserDisplayName() }}</span>
+                    <span class="user-role">{{ getUserRoleDisplay() }}</span>
+                </div>
+            </div>
+
+            <div class="user-actions">
+                <button class="btn-icon" (click)="toggleMenu()" [class.active]="isMenuOpen">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+
+                <div class="dropdown-menu" [class.show]="isMenuOpen">
+                    <a [routerLink]="['/profile']" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a [routerLink]="['/settings']" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item logout-btn" (click)="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" (click)="toggleMenu()">
+            <span class="toggle-bar"></span>
+            <span class="toggle-bar"></span>
+            <span class="toggle-bar"></span>
+        </button>
+    </div>
+</header>

@@ -1,0 +1,135 @@
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h1 class="register-title">Create Account</h1>
+            <p class="register-subtitle">Sign up for your account</p>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+            <!-- Basic Information -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Full Name</mat-label>
+                <input matInput formControlName="name" placeholder="Enter your full name">
+                <mat-icon matSuffix>person</mat-icon>
+                <mat-error *ngIf="name?.hasError('required')">
+                    Name is required
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email" placeholder="Enter your email">
+                <mat-icon matSuffix>email</mat-icon>
+                <mat-error *ngIf="email?.hasError('required')">
+                    Email is required
+                </mat-error>
+                <mat-error *ngIf="email?.hasError('email')">
+                    Please enter a valid email
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Password</mat-label>
+                <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'"
+                    placeholder="Enter your password">
+                <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-error *ngIf="password?.hasError('required')">
+                    Password is required
+                </mat-error>
+                <mat-error *ngIf="password?.hasError('minlength')">
+                    Password must be at least 6 characters
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Phone</mat-label>
+                <input matInput formControlName="phone" placeholder="Enter your phone number">
+                <mat-icon matSuffix>phone</mat-icon>
+            </mat-form-field>
+
+            <!-- Role Selection -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Role</mat-label>
+                <mat-select formControlName="role">
+                    <mat-option *ngFor="let role of roles" [value]="role">
+                        {{ role }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="role?.hasError('required')">
+                    Role is required
+                </mat-error>
+            </mat-form-field>
+
+            <!-- Student Specific Fields -->
+            <div *ngIf="selectedRole === 'STUDENT'" class="role-fields">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Roll Number</mat-label>
+                    <input matInput formControlName="rollNumber" placeholder="Enter roll number">
+                    <mat-icon matSuffix>badge</mat-icon>
+                    <mat-error *ngIf="rollNumber?.hasError('required')">
+                        Roll number is required
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Parent Email</mat-label>
+                    <input matInput formControlName="parentEmail" type="email" placeholder="Enter parent email">
+                    <mat-icon matSuffix>alternate_email</mat-icon>
+                    <mat-error *ngIf="parentEmail?.hasError('required')">
+                        Parent email is required
+                    </mat-error>
+                    <mat-error *ngIf="parentEmail?.hasError('email')">
+                        Please enter a valid email
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Teacher Specific Fields -->
+            <div *ngIf="selectedRole === 'TEACHER'" class="role-fields">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Teacher ID</mat-label>
+                    <input matInput formControlName="teacherId" placeholder="Enter teacher ID">
+                    <mat-icon matSuffix>work</mat-icon>
+                    <mat-error *ngIf="teacherId?.hasError('required')">
+                        Teacher ID is required
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Department</mat-label>
+                    <input matInput formControlName="department" placeholder="Enter department">
+                    <mat-icon matSuffix>business</mat-icon>
+                    <mat-error *ngIf="department?.hasError('required')">
+                        Department is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Admin Specific Fields -->
+            <div *ngIf="selectedRole === 'ADMIN'" class="role-fields">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Admin ID</mat-label>
+                    <input matInput formControlName="adminId" placeholder="Enter admin ID">
+                    <mat-icon matSuffix>admin_panel_settings</mat-icon>
+                    <mat-error *ngIf="adminId?.hasError('required')">
+                        Admin ID is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <button mat-raised-button color="primary" type="submit" class="register-button" [disabled]="isLoading">
+                <app-loading-spinner *ngIf="isLoading" [overlay]="false"
+                    message="Creating account..."></app-loading-spinner>
+                <span *ngIf="!isLoading">Create Account</span>
+            </button>
+        </form>
+
+        <div class="register-footer">
+            <p>Already have an account?
+                <a routerLink="/auth/login" class="login-link">Sign in here</a>
+            </p>
+        </div>
+    </div>
+</div>

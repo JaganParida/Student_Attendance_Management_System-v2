@@ -1,0 +1,132 @@
+<div class="teachers-management">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Teachers Management</h1>
+        <p>Manage teacher accounts and information</p>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+        {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <div class="search-box">
+            <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Search teachers..." />
+        </div>
+
+        <button class="btn btn-primary" (click)="addTeacher()" *ngIf="!isAddingTeacher && !isEditingTeacher">
+            + Add Teacher
+        </button>
+    </div>
+
+    <!-- Add / Edit Teacher Form -->
+    <div *ngIf="isAddingTeacher || isEditingTeacher" class="add-teacher-form card slide-in">
+
+        <h3>{{ isEditingTeacher ? 'Edit Teacher' : 'Add New Teacher' }}</h3>
+
+        <form [formGroup]="teacherForm" (ngSubmit)="onSubmitTeacher()" class="form-grid">
+
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" formControlName="name" class="form-control" placeholder="Enter full name" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email *</label>
+                <input type="email" formControlName="email" class="form-control" placeholder="Enter email address"
+                    [readonly]="isEditingTeacher" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Teacher ID *</label>
+                <input type="text" formControlName="teacherId" class="form-control" placeholder="Enter teacher ID"
+                    [readonly]="isEditingTeacher" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Department</label>
+                <input type="text" formControlName="department" class="form-control" placeholder="Enter department" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="tel" formControlName="phone" class="form-control" placeholder="Enter phone number" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    {{ isEditingTeacher ? 'New Password (optional)' : 'Password *' }}
+                </label>
+                <input type="password" formControlName="password" class="form-control" placeholder="Enter password" />
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" (click)="cancelAddTeacher()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    {{ isEditingTeacher ? 'Update Teacher' : 'Add Teacher' }}
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Teachers List Table -->
+    <div class="teachers-list card">
+
+        <app-loading-spinner *ngIf="isLoading" message="Loading teachers..." [overlay]="false"></app-loading-spinner>
+
+        <div *ngIf="!isLoading && filteredTeachers.length === 0" class="empty-state">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h4>No teachers found</h4>
+            <p *ngIf="searchTerm">Try changing your search</p>
+            <p *ngIf="!searchTerm">Add your first teacher to get started</p>
+        </div>
+
+        <table *ngIf="!isLoading && filteredTeachers.length > 0" class="table">
+            <thead>
+                <tr>
+                    <th>Teacher ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Phone</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let teacher of filteredTeachers">
+                    <td>{{ teacher.teacherId }}</td>
+                    <td>{{ teacher.name }}</td>
+                    <td>{{ teacher.email }}</td>
+                    <td>{{ teacher.department || '-' }}</td>
+                    <td>{{ teacher.phone || '-' }}</td>
+                    <td style="text-align:right;">
+                        <button class="btn-icon" (click)="editTeacher(teacher)" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-danger" (click)="confirmDeleteTeacher(teacher)" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <app-confirmation-dialog [show]="showConfirmation" title="Delete Teacher"
+        [message]="'Are you sure you want to delete ' + (teacherToDelete?.name || 'this teacher') + '?'"
+        confirmText="Delete" cancelText="Cancel" type="danger" (confirmed)="onDeleteConfirmed()"
+        (cancelled)="onDeleteCancelled()">
+    </app-confirmation-dialog>
+
+</div>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="edit-attendance.component.css">
+</head>
+<body>
+    <div class="edit-attendance-container">
+        <div class="edit-attendance-card">
+            <!-- Header Section -->
+            <div class="card-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="header-text">
+                        <h1 class="page-title">Edit Attendance Records</h1>
+                        <p class="page-subtitle">Select course and date to modify attendance data</p>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Loading State for Courses -->
+            <div *ngIf="isLoading" class="loading-overlay">
+                <div class="loading-content">
+                    <div class="spinner-large"></div>
+                    <p>Loading your courses...</p>
+                </div>
+            </div>
+    
+            <!-- Form Section -->
+            <div class="card-body" [class.loading]="isLoading">
+                <!-- Course Selection -->
+                <div class="form-section">
+                    <label class="form-label">
+                        <i class="fas fa-book-open"></i>
+                        Select Course
+                    </label>
+                    <div class="select-wrapper">
+                        <select class="form-select" [(ngModel)]="selectedCourseId" [disabled]="isLoading">
+                            <option value="">-- Choose a course --</option>
+                            <option *ngFor="let course of courses" [value]="course.id">
+                                {{ course.courseName }} ({{ course.courseCode }})
+                            </option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                        <div *ngIf="isLoading" class="select-loading">
+                            <div class="loading-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-hint">Choose the course you want to edit attendance for</div>
+                </div>
+    
+                <!-- Date Selection -->
+                <div class="form-section">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        Select Date
+                    </label>
+                    <div class="date-input-wrapper">
+                        <input type="date" class="form-input" [(ngModel)]="editDate" [max]="maxDate" [disabled]="isLoading">
+                        <i class="fas fa-calendar input-icon"></i>
+                    </div>
+                    <div class="form-hint">Maximum allowed date: {{ maxDate | date:'fullDate' }}</div>
+                </div>
+    
+                <!-- Action Button -->
+                <button class="submit-button" (click)="proceed()"
+                    [disabled]="!selectedCourseId || !editDate || isSubmitting || isLoading">
+                    <span class="button-content" [class.hidden]="isSubmitting">
+                        <i class="fas fa-arrow-right"></i>
+                        Proceed to Edit Attendance
+                    </span>
+                    <div class="button-loading" *ngIf="isSubmitting">
+                        <div class="spinner"></div>
+                        <span>Processing...</span>
+                    </div>
+                </button>
+            </div>
+    
+            <!-- Footer Section -->
+            <div class="card-footer">
+                <div class="info-box">
+                    <div class="info-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>Note:</strong> You can edit attendance records within the allowed time period.
+                        For dates beyond the maximum allowed date, please contact administration.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

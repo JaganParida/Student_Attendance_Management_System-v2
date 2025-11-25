@@ -1,0 +1,48 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+    <div class="sidebar-content">
+        <div class="sidebar-header">
+            <div class="sidebar-logo" *ngIf="!isCollapsed">
+                <div class="logo-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span class="logo-text">Attendance</span>
+            </div>
+            <button class="sidebar-toggle" (click)="isCollapsed = !isCollapsed">
+                <i class="fas" [class.fa-chevron-left]="!isCollapsed" [class.fa-chevron-right]="isCollapsed"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-items">
+                <a *ngFor="let item of menuItems" [routerLink]="item.route" class="nav-item"
+                    [class.active]="isActive(item.route)" [class.has-children]="item.children"
+                    (click)="toggleSubMenu(item)">
+
+                    <div class="nav-item-content">
+                        <div class="nav-icon">
+                            <i [class]="item.icon"></i>
+                        </div>
+                        <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+                    </div>
+
+                    <i *ngIf="item.children && !isCollapsed" class="fas fa-chevron-down nav-arrow"
+                        [class.rotated]="item.active"></i>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer" *ngIf="!isCollapsed && currentUser">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <div class="avatar-circle">
+                        {{ currentUser.name.charAt(0) }}
+                    </div>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ currentUser.name }}</span>
+                    <span class="user-role">{{ currentUser.role | titlecase }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>

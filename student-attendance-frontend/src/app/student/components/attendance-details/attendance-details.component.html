@@ -1,0 +1,577 @@
+<div class="attendance-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">Attendance Details</h1>
+            <p class="page-subtitle">View your complete attendance history.</p>
+        </div>
+        <button class="refresh-btn" (click)="loadAttendance()">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+        </button>
+    </div>
+
+    <!-- Controls Section -->
+    <div class="controls-section">
+        <div class="controls-content">
+            <div class="controls-grid">
+                <!-- Search Bar -->
+                <div class="search-group">
+                    <div class="search-input-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search by course, status, or date..."
+                            [(ngModel)]="searchText" (keyup)="applyFilter()">
+                    </div>
+                </div>
+
+                <!-- Date Range Filter -->
+                <div class="date-group">
+                    <div class="date-input-container">
+                        <label class="date-label">From</label>
+                        <input type="date" class="date-input" [(ngModel)]="startDate" (change)="onDateChange()">
+                    </div>
+                    <div class="date-input-container">
+                        <label class="date-label">To</label>
+                        <input type="date" class="date-input" [(ngModel)]="endDate" (change)="onDateChange()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading records...</p>
+    </div>
+
+    <!-- Data Table -->
+    <div *ngIf="!isLoading" class="table-section">
+        <div class="table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th class="date-column">Date</th>
+                        <th class="course-column">Course Details</th>
+                        <th class="time-column">Time</th>
+                        <th class="status-column">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let record of filteredRecords" class="table-row">
+                        <td class="date-cell">
+                            <div class="date-display">{{ record.date | date:'mediumDate' }}</div>
+                        </td>
+                        <td class="course-cell">
+                            <div class="course-name">{{ record.courseName }}</div>
+                            <div class="course-code">{{ record.courseCode }}</div>
+                        </td>
+                        <td class="time-cell">
+                            <div class="time-display">
+                                <i class="far fa-clock"></i>
+                                {{ record.startTime | slice:0:5 }} - {{ record.endTime | slice:0:5 }}
+                            </div>
+                        </td>
+                        <td class="status-cell">
+                            <span class="status-badge" [ngClass]="getStatusClass(record.status)">
+                                <i [class]="getStatusIcon(record.status)"></i>
+                                {{ record.status }}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <!-- Empty State -->
+                    <tr *ngIf="filteredRecords.length === 0" class="empty-row">
+                        <td colspan="4" class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                            <h3>No records found</h3>
+                            <p>Try adjusting your search or date filters.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Design System Variables */
+    :host {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --bg-light: #f8fafc;
+        --white: #ffffff;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius: 12px;
+    }
+
+    .attendance-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+
+    .header-content .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+    }
+
+    .header-content .page-subtitle {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .refresh-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: transparent;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+    }
+
+    .refresh-btn:hover {
+        background: var(--primary);
+        color: var(--white);
+        transform: translateY(-1px);
+    }
+
+    /* Controls Section */
+    .controls-section {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .controls-content {
+        padding: 24px;
+    }
+
+    .controls-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: end;
+    }
+
+    /* Search Group */
+    .search-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .search-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        color: var(--text-muted);
+        font-size: 16px;
+        z-index: 2;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        background: var(--white);
+        transition: all 0.2s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Date Group */
+    .date-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .date-input-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .date-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .date-input {
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        background: var(--white);
+        transition: all 0.2s;
+    }
+
+    .date-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Error Message */
+    .error-message {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        background: var(--danger-light);
+        color: var(--danger);
+        border-radius: var(--radius);
+        margin-bottom: 24px;
+        font-weight: 500;
+    }
+
+    .error-message i {
+        font-size: 18px;
+    }
+
+    /* Loading State */
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--primary-light);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-state p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Table Section */
+    .table-section {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .attendance-table thead {
+        background: var(--bg-light);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .attendance-table th {
+        padding: 20px 24px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .attendance-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background-color 0.2s;
+    }
+
+    .attendance-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .attendance-table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    /* Table Cells */
+    .attendance-table td {
+        padding: 20px 24px;
+    }
+
+    .date-cell .date-display {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 14px;
+    }
+
+    .course-cell .course-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+
+    .course-cell .course-code {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .time-cell .time-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .time-cell i {
+        font-size: 14px;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+
+    .status-badge i {
+        font-size: 12px;
+    }
+
+    /* Status Classes */
+    .status-present {
+        background: var(--success-light);
+        color: var(--success);
+        border-color: var(--success);
+    }
+
+    .status-absent {
+        background: var(--danger-light);
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+    .status-late {
+        background: var(--warning-light);
+        color: var(--warning);
+        border-color: var(--warning);
+    }
+
+    .status-excused {
+        background: var(--primary-light);
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    /* Empty State */
+    .empty-row .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--bg-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: var(--text-muted);
+    }
+
+    .empty-icon i {
+        font-size: 32px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .controls-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .date-group {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .attendance-container {
+            padding: 16px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .refresh-btn {
+            align-self: stretch;
+            justify-content: center;
+        }
+
+        .date-group {
+            grid-template-columns: 1fr;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding: 16px 20px;
+        }
+
+        .attendance-table {
+            font-size: 14px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .table-container {
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .attendance-table thead {
+            display: none;
+        }
+
+        .attendance-table tbody tr {
+            display: block;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .attendance-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .attendance-table td {
+            display: block;
+            padding: 8px 0;
+            border: none;
+            text-align: left;
+        }
+
+        .attendance-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .date-cell::before {
+            content: "Date";
+        }
+
+        .course-cell::before {
+            content: "Course";
+        }
+
+        .time-cell::before {
+            content: "Time";
+        }
+
+        .status-cell::before {
+            content: "Status";
+        }
+
+        .status-badge {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+</style>

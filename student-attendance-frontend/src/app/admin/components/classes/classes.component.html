@@ -1,0 +1,147 @@
+<div class="classes-management">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>Classes Management</h1>
+        <p>Manage classes, sections, and academic organization</p>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        {{ successMessage }}
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()"
+                placeholder="Search classes by name, section, or year..." class="search-input" />
+        </div>
+
+        <button class="btn btn-primary" (click)="addClass()" [disabled]="isAddingClass">
+            <i class="fas fa-plus"></i>
+            Add Class
+        </button>
+    </div>
+
+    <!-- Add/Edit Class Form -->
+    <div *ngIf="isAddingClass" class="add-class-form card slide-in">
+        <h3>{{ isEditing ? 'Edit Class' : 'Add New Class' }}</h3>
+
+        <form [formGroup]="classForm" (ngSubmit)="onSubmitClass()" class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Class Name *</label>
+                <input type="text" formControlName="className" class="form-control" placeholder="e.g., Class 10"
+                    [class.error]="classNameCtrl?.invalid && classNameCtrl?.touched" />
+                <div *ngIf="classNameCtrl?.invalid && classNameCtrl?.touched" class="error-message">
+                    <span *ngIf="classNameCtrl?.errors?.['required']">Class name is required</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Section *</label>
+                <input type="text" formControlName="section" class="form-control" placeholder="e.g., A, B, C"
+                    [class.error]="sectionCtrl?.invalid && sectionCtrl?.touched" />
+                <div *ngIf="sectionCtrl?.invalid && sectionCtrl?.touched" class="error-message">
+                    <span *ngIf="sectionCtrl?.errors?.['required']">Section is required</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Academic Year *</label>
+                <select formControlName="academicYear" class="form-control"
+                    [class.error]="academicYearCtrl?.invalid && academicYearCtrl?.touched">
+                    <option [ngValue]="null" disabled>Select Academic Year</option>
+                    <option *ngFor="let year of academicYears" [value]="year">{{ year }}</option>
+                </select>
+                <div *ngIf="academicYearCtrl?.invalid && academicYearCtrl?.touched" class="error-message">
+                    <span *ngIf="academicYearCtrl?.errors?.['required']">Academic year is required</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Semester *</label>
+                <select formControlName="semester" class="form-control"
+                    [class.error]="semesterCtrl?.invalid && semesterCtrl?.touched">
+                    <option [ngValue]="null" disabled>Select Semester</option>
+                    <option *ngFor="let s of semesters" [value]="s">{{ s }}</option>
+                </select>
+                <div *ngIf="semesterCtrl?.invalid && semesterCtrl?.touched" class="error-message">
+                    <span *ngIf="semesterCtrl?.errors?.['required']">Semester is required</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" (click)="cancelAddClass()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="classForm.invalid">
+                    {{ isEditing ? 'Update Class' : 'Add Class' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Classes List -->
+    <div class="classes-list">
+        <div class="classes-grid" *ngIf="!isLoading && filteredClasses.length > 0">
+            <div *ngFor="let classItem of filteredClasses" class="class-card card">
+                <div class="class-header">
+                    <div class="class-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="class-info">
+                        <h3>{{ classItem.className }} - Section {{ classItem.section }}</h3>
+                        <p>
+                            Academic Year: {{ classItem.academicYear }} | Semester: {{ classItem.semester }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="class-details">
+                    <p class="text-muted">Manage courses and students for this class.</p>
+                </div>
+
+                <div class="class-actions">
+                    <button class="btn btn-outline btn-sm">
+                        <i class="fas fa-eye"></i>
+                        View
+                    </button>
+                    <button class="btn btn-outline btn-sm" (click)="editClass(classItem)">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                    <button class="btn btn-outline btn-sm btn-danger" (click)="confirmDeleteClass(classItem)">
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <app-loading-spinner *ngIf="isLoading" message="Loading classes..." [overlay]="false">
+        </app-loading-spinner>
+
+        <div *ngIf="!isLoading && filteredClasses.length === 0" class="empty-state card">
+            <i class="fas fa-users"></i>
+            <h4>No classes found</h4>
+            <p *ngIf="searchTerm">Try adjusting your search terms</p>
+            <p *ngIf="!searchTerm">Get started by adding your first class</p>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <app-confirmation-dialog [show]="showConfirmation" title="Delete Class" [message]="
+      'Are you sure you want to delete ' +
+      ((classToDelete?.className || '') + ' - Section ' + (classToDelete?.section || '')) +
+      '?'
+    " confirmText="Delete" cancelText="Cancel" type="danger" (confirmed)="onDeleteConfirmed()"
+        (cancelled)="onDeleteCancelled()">
+    </app-confirmation-dialog>
+</div>

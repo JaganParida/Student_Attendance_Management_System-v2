@@ -1,0 +1,363 @@
+<div class="students-container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">Students</h1>
+            <p class="page-subtitle">Manage and view student information</p>
+        </div>
+    </div>
+
+    <!-- Class Selection Card -->
+    <div class="selection-card">
+        <div class="card-content">
+            <label class="selection-label">SELECT CLASS</label>
+            <select class="selection-dropdown" [(ngModel)]="selectedCourseId" (change)="loadStudents()">
+                <option [ngValue]="null">-- Select --</option>
+                <option *ngFor="let c of courses" [value]="c.id">{{ c.courseName }}</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Students Grid -->
+    <div class="students-grid">
+        <div class="student-card" *ngFor="let s of students">
+            <div class="card-content">
+                <div class="student-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="student-name">{{ s.name || s.studentName }}</h3>
+                <div class="student-details">
+                    <div class="detail-item">
+                        <i class="fas fa-id-card"></i>
+                        <span>Roll: {{ s.rollNumber }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ s.email }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="students.length === 0 && selectedCourseId" class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h3>No Students Found</h3>
+        <p>No students are enrolled in the selected class.</p>
+    </div>
+
+    <!-- Initial State -->
+    <div *ngIf="!selectedCourseId" class="initial-state">
+        <div class="initial-icon">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h3>Select a Class</h3>
+        <p>Choose a class from the dropdown above to view students.</p>
+    </div>
+</div>
+
+<style>
+    /* Design System Variables - Consistent with Previous Components */
+    :host {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --secondary: #64748b;
+        --secondary-light: #f8fafc;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --white: #ffffff;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius: 12px;
+    }
+
+    .students-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .header-content .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+    }
+
+    .header-content .page-subtitle {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 16px;
+    }
+
+    /* Selection Card */
+    .selection-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 32px;
+        padding: 24px;
+    }
+
+    .selection-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .selection-dropdown {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--white);
+        font-size: 14px;
+        color: var(--text-dark);
+        transition: all 0.2s;
+    }
+
+    .selection-dropdown:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    /* Students Grid */
+    .students-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .student-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        transition: all 0.2s ease;
+        overflow: hidden;
+    }
+
+    .student-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-content {
+        padding: 24px;
+        text-align: center;
+    }
+
+    /* Student Avatar */
+    .student-avatar {
+        width: 80px;
+        height: 80px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        border: 2px solid var(--primary);
+    }
+
+    .student-avatar i {
+        font-size: 32px;
+        color: var(--primary);
+    }
+
+    /* Student Info */
+    .student-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+        line-height: 1.3;
+    }
+
+    .student-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--text-muted);
+        justify-content: center;
+    }
+
+    .detail-item i {
+        width: 16px;
+        color: var(--primary);
+        font-size: 12px;
+    }
+
+    /* Empty States */
+    .empty-state,
+    .initial-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon,
+    .initial-icon {
+        width: 100px;
+        height: 100px;
+        background: var(--secondary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        color: var(--text-muted);
+    }
+
+    .empty-icon i,
+    .initial-icon i {
+        font-size: 40px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3,
+    .initial-state h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+
+    .empty-state p,
+    .initial-state p {
+        color: var(--text-muted);
+        max-width: 400px;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .students-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .students-container {
+            padding: 16px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .header-content .page-title {
+            font-size: 24px;
+        }
+
+        .selection-card {
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .students-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .student-avatar {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 16px;
+        }
+
+        .student-avatar i {
+            font-size: 28px;
+        }
+
+        .student-name {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .students-grid {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .empty-state,
+        .initial-state {
+            padding: 40px 20px;
+        }
+
+        .empty-icon,
+        .initial-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .empty-icon i,
+        .initial-icon i {
+            font-size: 32px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .students-container {
+            padding: 12px;
+        }
+
+        .selection-card {
+            padding: 16px;
+        }
+
+        .card-content {
+            padding: 16px;
+        }
+
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 12px;
+        }
+
+        .student-avatar i {
+            font-size: 24px;
+        }
+
+        .student-name {
+            font-size: 15px;
+        }
+
+        .detail-item {
+            font-size: 13px;
+        }
+    }
+</style>

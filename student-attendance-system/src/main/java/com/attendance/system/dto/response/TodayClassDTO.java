@@ -1,0 +1,89 @@
+package com.attendance.system.dto.response;
+
+import java.time.LocalTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+public class TodayClassDTO {
+    private Long id;
+    private String courseName; 
+    private String courseCode; 
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private String classRoom;
+    private String className;  
+    private String section;   
+    private String status;     
+
+    // 🔴 NEW FIELDS for Dashboard Logic
+    private boolean isUnlockedByAdmin; // True if Approved or Unlocked in DB
+    private boolean hasPendingRequest; // True if Request Sent but not handled
+
+    public TodayClassDTO(Long id, String courseName, String courseCode, 
+                         LocalTime startTime, LocalTime endTime, 
+                         String classRoom, String semester, String section) {
+        this.id = id;
+        this.courseName = courseName;
+        this.courseCode = courseCode;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.classRoom = classRoom;
+        this.className = (semester != null) ? "Sem " + semester : "General"; 
+        this.section = section;
+        this.status = calculateStatus(startTime, endTime);
+    }
+
+    // ✅ STRICT STATUS LOGIC
+    private String calculateStatus(LocalTime start, LocalTime end) {
+        if (start == null || end == null) {
+            return "Scheduled";
+        }
+
+        ZoneId zone = ZoneId.of("Asia/Kolkata");
+        LocalTime now = LocalTime.now(zone);
+        
+        if (now.isBefore(start)) return "Upcoming";
+        
+        // 15-Minute Rule
+        if (now.isAfter(start.plusMinutes(15))) return "Locked"; 
+        
+        if (now.isAfter(end)) return "Completed";
+
+        return "Ongoing"; 
+    }
+
+    // ================= GETTERS AND SETTERS =================
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getCourseName() { return courseName; }
+    public void setCourseName(String courseName) { this.courseName = courseName; }
+
+    public String getCourseCode() { return courseCode; }
+    public void setCourseCode(String courseCode) { this.courseCode = courseCode; }
+
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+    
+    public String getClassRoom() { return classRoom; }
+    public void setClassRoom(String classRoom) { this.classRoom = classRoom; }
+
+    public String getClassName() { return className; }
+    public void setClassName(String className) { this.className = className; }
+
+    public String getSection() { return section; }
+    public void setSection(String section) { this.section = section; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    // ✅ NEW GETTERS AND SETTERS
+    public boolean getIsUnlockedByAdmin() { return isUnlockedByAdmin; }
+    public void setIsUnlockedByAdmin(boolean isUnlockedByAdmin) { this.isUnlockedByAdmin = isUnlockedByAdmin; }
+
+    public boolean getHasPendingRequest() { return hasPendingRequest; }
+    public void setHasPendingRequest(boolean hasPendingRequest) { this.hasPendingRequest = hasPendingRequest; }
+}
