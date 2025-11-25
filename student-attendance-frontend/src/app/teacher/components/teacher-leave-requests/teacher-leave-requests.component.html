@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Request Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* FIX: Applied variables to .page-container instead of :root 
+           to ensure they work inside Angular/Component scopes 
+        */
+        .page-container {
+            /* Professional Dashboard Palette */
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+
+            --success: #059669;
+            --success-bg: #ecfdf5;
+
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+
+            /* Grays for Depth */
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            /* Added missing gray-200 for borders */
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-800: #1e293b;
+            --white: #ffffff;
+
+            /* Shadows & Radius */
+            --card-radius: 12px;
+            --btn-radius: 8px;
+
+            /* Shadows */
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+            /* Layout Properties */
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            /* Fallback if var fails */
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HEADER SECTION */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--gray-200);
+            /* Uses the added variable */
+            padding-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-800);
+            letter-spacing: -0.025em;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        .stats-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .stat-pill {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* TABS */
+        .tabs-container {
+            margin-bottom: 24px;
+        }
+
+        .nav-pills .nav-link {
+            color: var(--gray-500);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: var(--btn-radius);
+            margin-right: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        /* CARD GRID SYSTEM */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        /* PROFESSIONAL CARD DESIGN */
+        .request-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            /* Fixed border variable */
+            border-radius: var(--card-radius);
+            /* This will now work */
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .request-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: #cbd5e1;
+        }
+
+        /* Card Top: User Info */
+        .card-header-area {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gray-800), #334155);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            flex-shrink: 0;
+            border: 2px solid var(--white);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-meta h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--gray-800);
+        }
+
+        .user-meta span {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* Card Body: Data */
+        .card-content {
+            padding: 0 20px 20px 20px;
+            flex: 1;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            border-bottom: 1px dashed var(--gray-200);
+            padding-bottom: 8px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .value {
+            color: var(--gray-800);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .reason-block {
+            background-color: var(--gray-50);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .reason-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-400);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .reason-text {
+            font-size: 13px;
+            color: var(--gray-500);
+            line-height: 1.5;
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Card Footer: Actions/Status */
+        .card-footer-area {
+            padding: 16px 20px;
+            background-color: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Buttons */
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: var(--btn-radius);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-approve {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-approve:hover {
+            background-color: #1d4ed8;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-reject {
+            background-color: var(--white);
+            color: var(--danger);
+            border-color: var(--gray-200);
+        }
+
+        .btn-reject:hover {
+            background-color: var(--danger-bg);
+            border-color: var(--danger);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.approved {
+            background-color: var(--success-bg);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+        }
+
+        .status-badge.rejected {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+
+        /* Alerts */
+        .alert-floating {
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--white);
+            border-radius: var(--card-radius);
+            border: 1px dashed var(--gray-400);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-container">
+
+        <div class="header-section">
+            <div>
+                <h1 class="page-title">Leave Requests</h1>
+                <p class="page-subtitle">Manage and review student leave applications</p>
+            </div>
+            <div class="stats-group">
+                <div class="stat-pill">
+                    <i class="fas fa-check-circle text-success"></i> Synced
+                </div>
+                <div class="stat-pill">
+                    <i class="fas fa-inbox text-primary"></i> {{ pendingRequests.length }} Pending
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="successMessage" class="alert-floating alert-success">
+            <i class="fas fa-check-circle"></i> {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="alert-floating alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> {{ errorMessage }}
+        </div>
+
+        <ul class="nav nav-pills tabs-container">
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'pending'" (click)="switchTab('pending')">
+                    Pending
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'history'" (click)="switchTab('history')">
+                    History
+                </button>
+            </li>
+        </ul>
+
+        <div *ngIf="isLoading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <div *ngIf="activeTab === 'pending' && !isLoading" class="cards-grid">
+
+            <div *ngIf="pendingRequests.length === 0" class="empty-state col-12" style="grid-column: 1 / -1;">
+                <i class="fas fa-clipboard-check fa-3x text-secondary mb-3"></i>
+                <h5>All caught up!</h5>
+                <p class="text-muted">No pending requests at the moment.</p>
+            </div>
+
+            <div *ngFor="let req of pendingRequests" class="request-card">
+                <div class="card-header-area">
+                    <div class="avatar-circle">
+                        {{ req.studentName.charAt(0) }}
+                    </div>
+                    <div class="user-meta">
+                        <h4>{{ req.studentName }}</h4>
+                        <span>ID: {{ req.rollNumber }}</span>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="label">Type</span>
+                        <span class="value">{{ req.type }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Duration</span>
+                        <span class="value">
+                            {{ req.startDate | date:'MMM d' }} <i class="fas fa-arrow-right fa-xs text-muted"></i> {{
+                            req.endDate | date:'MMM d' }}
+                        </span>
+                    </div>
+
+                    <div class="reason-block">
+                        <span class="reason-label">Reason</span>
+                        <p class="reason-text">"{{ req.reason }}"</p>
+                    </div>
+                </div>
+
+                <div class="card-footer-area">
+                    <span class="timestamp">Requested {{ req.requestedAt | date:'shortTime' }}</span>
+                    <div class="d-flex gap-2">
+                        <button class="btn-action btn-reject" (click)="processRequest(req.id, false)">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                        <button class="btn-action btn-approve" (click)="processRequest(req.id, true)">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="activeTab === 'history' && !isLoading" class="cards-grid">
+
+            <div *ngIf="historyRequests.length === 0" class="empty-state col-12" style="grid-column: 1 / -1;">
+                <i class="fas fa-history fa-3x text-secondary mb-3"></i>
+                <h5>No history found</h5>
+                <p class="text-muted">Processed requests will appear here.</p>
+            </div>
+
+            <div *ngFor="let req of historyRequests" class="request-card">
+                <div class="card-header-area">
+                    <div class="avatar-circle" style="background: var(--gray-500);">
+                        {{ req.studentName.charAt(0) }}
+                    </div>
+                    <div class="user-meta">
+                        <h4>{{ req.studentName }}</h4>
+                        <span>ID: {{ req.rollNumber }}</span>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="label">Type</span>
+                        <span class="value">{{ req.type }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Date</span>
+                        <span class="value">{{ req.startDate | date:'MMM d' }} - {{ req.endDate | date:'MMM d' }}</span>
+                    </div>
+                </div>
+
+                <div class="card-footer-area">
+                    <div class="status-badge" [ngClass]="{
+                        'approved': req.status === 'APPROVED',
+                        'rejected': req.status === 'REJECTED'
+                    }">
+                        <i class="fas" [class.fa-check-circle]="req.status === 'APPROVED'"
+                            [class.fa-times-circle]="req.status === 'REJECTED'"></i>
+                        {{ req.status }}
+                    </div>
+                    <span class="timestamp">{{ req.processedAt | date:'mediumDate' }}</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

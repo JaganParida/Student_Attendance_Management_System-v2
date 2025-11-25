@@ -2,14 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-// CHANGE THIS PATH to point to your actual AuthService
 import { AuthService } from '../../core/services/auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TeacherService {
-  // Make sure this matches your Spring Boot Controller path
   private apiUrl = `${environment.apiUrl}/teacher`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
@@ -19,6 +17,7 @@ export class TeacherService {
   }
 
   // --- DASHBOARD & COURSES ---
+
   getTeacherDashboard(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/dashboard`, this.getHeaders());
   }
@@ -27,13 +26,14 @@ export class TeacherService {
     return this.http.get<any[]>(`${this.apiUrl}/courses`, this.getHeaders());
   }
 
-  // --- ATTENDANCE DATA ---
   getStudentsByCourse(courseId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiUrl}/courses/${courseId}/students`,
       this.getHeaders()
     );
   }
+
+  // --- ATTENDANCE METHODS ---
 
   getClassAttendance(courseId: number, date: string): Observable<any[]> {
     return this.http.get<any[]>(
@@ -42,7 +42,6 @@ export class TeacherService {
     );
   }
 
-  // --- RULE CHECKING ---
   checkAttendanceRules(
     courseId: number,
     date: string,
@@ -58,9 +57,7 @@ export class TeacherService {
     });
   }
 
-  // --- ACTIONS ---
   markAttendance(payload: any): Observable<any> {
-    // Payload: { courseId, date, notifyParents, attendanceList }
     return this.http.post(`${this.apiUrl}/attendance/mark`, payload, {
       ...this.getHeaders(),
       responseType: 'text',
@@ -74,8 +71,9 @@ export class TeacherService {
     });
   }
 
+  // --- UNLOCK REQUESTS ---
+
   createUnlockRequest(payload: any): Observable<any> {
-    // Payload: { courseId, date, reason, requestType }
     return this.http.post(
       `${this.apiUrl}/unlock-requests`,
       payload,
@@ -87,6 +85,32 @@ export class TeacherService {
     return this.http.get<any[]>(
       `${this.apiUrl}/unlock-requests`,
       this.getHeaders()
+    );
+  }
+
+  // --- LEAVE REQUESTS (UPDATED) ---
+
+  getPendingLeaveRequests(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/leave-requests/pending`,
+      this.getHeaders()
+    );
+  }
+
+  // ✅ Matches the new Backend Endpoint for History
+  getProcessedLeaveRequests(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/leave-requests/history`,
+      this.getHeaders()
+    );
+  }
+
+  processLeaveRequest(requestId: number, approve: boolean): Observable<any> {
+    const params = new HttpParams().set('approve', approve);
+    return this.http.post<any>(
+      `${this.apiUrl}/leave-requests/${requestId}/process`,
+      {},
+      { ...this.getHeaders(), params }
     );
   }
 }

@@ -16,18 +16,14 @@ export class StudentService {
     return { headers: this.authService.getAuthHeaders() };
   }
 
-  // ✅ Updated to handle filters dynamically
   getStudentDashboard(year?: string, sem?: string): Observable<any> {
     let params = new HttpParams();
-
-    // Only append if value is valid and not default prompt
     if (year && year !== 'Select Year' && year !== 'All') {
       params = params.set('academicYear', year);
     }
     if (sem && sem !== 'Select Semester' && sem !== 'All') {
       params = params.set('semester', sem);
     }
-
     return this.http.get<any>(`${this.apiUrl}/dashboard`, {
       ...this.getHeaders(),
       params,
@@ -48,5 +44,14 @@ export class StudentService {
       ...this.getHeaders(),
       params,
     });
+  }
+
+  // 🔴 NEW: Leave Request Methods
+  createLeaveRequest(leaveData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/leave`, leaveData, this.getHeaders());
+  }
+
+  getLeaveRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/leave`, this.getHeaders());
   }
 }

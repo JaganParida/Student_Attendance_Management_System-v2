@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-// ✅ FIX: Import the correct class name
 import { StudentDashboardComponent } from './components/dashboard/dashboard.component';
 import { AttendanceDetailsComponent } from './components/attendance-details/attendance-details.component';
+// ✅ FIX: Import the new LeaveRequestsComponent
+import { LeaveRequestsComponent } from './components/leave-requests/leave-requests.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,11 @@ const routes: Routes = [
   {
     path: 'attendance-details',
     component: AttendanceDetailsComponent,
+  },
+  // ✅ ADDED: Route for Leave Requests
+  {
+    path: 'leave-requests',
+    component: LeaveRequestsComponent,
   },
 ];
 

@@ -34,8 +34,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // Subscribe to user changes to update menu dynamically
     this.authSubscription = this.authService.currentUser.subscribe(
       (user: UserInfoResponse | null) => {
-        this.currentUser = user;
-        // Fix: Ensure role exists before calling setMenuItems, default to empty string if null
+        this.currentUser = user; // Fix: Ensure role exists before calling setMenuItems, default to empty string if null
         this.setMenuItems(user?.role || '');
       }
     );
@@ -133,15 +132,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
         icon: 'fas fa-list',
         route: '/teacher/student-list',
       },
-      {
-        label: 'Attendance Performance',
-        icon: 'fas fa-chart-line',
-        route: '/teacher/attendance-performance',
-      },
+      // ❌ REMOVED: Attendance Performance
       {
         label: 'Unlock Requests',
         icon: 'fas fa-unlock',
         route: '/teacher/unlock-requests',
+      },
+      // ✅ ADDED: Leave Requests
+      {
+        label: 'Leave Requests',
+        icon: 'fas fa-envelope-open-text',
+        route: '/teacher/leave-requests',
       },
     ];
   }
@@ -185,9 +186,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       fragment: 'ignored',
       matrixParams: 'ignored',
     });
-  }
+  } // ✅ Added logout method to prevent template errors
 
-  // ✅ Added logout method to prevent template errors
   logout() {
     this.authService.logout();
     this.router.navigate(['/auth/login']);

@@ -1,10 +1,13 @@
 package com.attendance.system.controller;
 
+import com.attendance.system.dto.request.LeaveRequestDTO;
 import com.attendance.system.dto.response.AttendanceDetailResponse;
+import com.attendance.system.dto.response.LeaveRequestResponse;
 import com.attendance.system.dto.response.StudentDashboardResponse;
-import com.attendance.system.entity.Student;
 import com.attendance.system.repository.StudentRepository;
+import com.attendance.system.entity.Student;
 import com.attendance.system.service.StudentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -42,17 +45,27 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentDashboard(getCurrentStudentId(), academicYear, semester));
     }
 
-    // 🔴 NEW ENDPOINT: This was missing, causing the 404 error
     @GetMapping("/attendance")
     public ResponseEntity<List<AttendanceDetailResponse>> getAttendanceHistory(
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         
-        // Default to last 30 days if no date range provided
         if (startDate == null) startDate = LocalDate.now().minusDays(30);
         if (endDate == null) endDate = LocalDate.now();
 
         return ResponseEntity.ok(studentService.getStudentAttendance(getCurrentStudentId(), courseId, startDate, endDate));
+    }
+
+    // ✅ FIXED: Returns DTO
+    @PostMapping("/leave")
+    public ResponseEntity<LeaveRequestResponse> createLeaveRequest(@Valid @RequestBody LeaveRequestDTO requestDTO) {
+        return ResponseEntity.ok(studentService.createLeaveRequest(requestDTO, getCurrentStudentId()));
+    }
+
+    // ✅ FIXED: Returns List of DTOs
+    @GetMapping("/leave")
+    public ResponseEntity<List<LeaveRequestResponse>> getLeaveRequests() {
+        return ResponseEntity.ok(studentService.getStudentLeaveRequests(getCurrentStudentId()));
     }
 }

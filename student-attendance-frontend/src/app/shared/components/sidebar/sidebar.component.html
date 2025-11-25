@@ -42,6 +42,9 @@
                     <span class="user-name">{{ currentUser.name }}</span>
                     <span class="user-role">{{ currentUser.role | titlecase }}</span>
                 </div>
+                <button class="btn-logout" (click)="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </div>
         </div>
     </div>

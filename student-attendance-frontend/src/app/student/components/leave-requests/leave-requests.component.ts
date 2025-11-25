@@ -14,16 +14,16 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
 
 interface LeaveRequest {
   id: number;
-  courseName: string;
-  courseCode: string;
-  fromDate: string;
-  toDate: string;
+  courseName?: string;
+  courseCode?: string;
+  startDate: string;
+  endDate: string;
   reason: string;
   proofDocument?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   requestedAt: string;
   processedAt?: string;
-  processedBy?: string;
+  teacherName?: string;
   remarks?: string;
 }
 
@@ -43,6 +43,8 @@ interface LeaveRequest {
 })
 export class LeaveRequestsComponent implements OnInit {
   leaveRequests: LeaveRequest[] = [];
+  courses: any[] = []; // Courses for dropdown
+
   isLoading = false;
   isSubmitting = false;
   errorMessage = '';
@@ -53,137 +55,97 @@ export class LeaveRequestsComponent implements OnInit {
   showConfirmation = false;
   requestToDelete: LeaveRequest | null = null;
 
-  // Mock courses for demo
-  courses = [
-    { id: 1, name: 'Mathematics', code: 'MATH101' },
-    { id: 2, name: 'Physics', code: 'PHY101' },
-    { id: 3, name: 'Chemistry', code: 'CHEM101' },
-    { id: 4, name: 'Biology', code: 'BIO101' },
-  ];
-
   constructor(
     private studentService: StudentService,
     private formBuilder: FormBuilder
   ) {
     this.leaveForm = this.formBuilder.group({
       courseId: ['', [Validators.required]],
-      fromDate: ['', [Validators.required]],
-      toDate: ['', [Validators.required]],
+      startDate: ['', [Validators.required]],
+      endDate: ['', [Validators.required]],
       reason: ['', [Validators.required, Validators.minLength(10)]],
       proofDocument: [''],
     });
   }
 
   ngOnInit(): void {
+    this.loadCourses();
     this.loadLeaveRequests();
+  }
+
+  loadCourses() {
+    this.studentService.getStudentDashboard().subscribe({
+      next: (data) => {
+        this.courses = data.courseAttendances.map((c: any) => ({
+          id: c.courseId,
+          name: c.courseName,
+          code: c.courseCode,
+        }));
+      },
+    });
   }
 
   loadLeaveRequests(): void {
     this.isLoading = true;
-    // Mock data - in real app, fetch from service
-    setTimeout(() => {
-      this.leaveRequests = [
-        {
-          id: 1,
-          courseName: 'Mathematics',
-          courseCode: 'MATH101',
-          fromDate: '2024-01-22',
-          toDate: '2024-01-23',
-          reason: 'Family emergency requiring immediate attention',
-          status: 'PENDING',
-          requestedAt: '2024-01-20T10:30:00',
-        },
-        {
-          id: 2,
-          courseName: 'Physics',
-          courseCode: 'PHY101',
-          fromDate: '2024-01-18',
-          toDate: '2024-01-18',
-          reason: 'Medical appointment for regular checkup',
-          proofDocument: 'medical_certificate.pdf',
-          status: 'APPROVED',
-          requestedAt: '2024-01-17T14:20:00',
-          processedAt: '2024-01-18T09:15:00',
-          processedBy: 'Dr. Smith',
-          remarks: 'Approved with medical proof',
-        },
-        {
-          id: 3,
-          courseName: 'Chemistry',
-          courseCode: 'CHEM101',
-          fromDate: '2024-01-15',
-          toDate: '2024-01-16',
-          reason: 'Personal reasons requiring time off',
-          status: 'REJECTED',
-          requestedAt: '2024-01-14T16:45:00',
-          processedAt: '2024-01-15T11:30:00',
-          processedBy: 'Ms. Davis',
-          remarks: 'Insufficient reason provided for two-day leave',
-        },
-      ];
-      this.isLoading = false;
-    }, 1000);
+    this.studentService.getLeaveRequests().subscribe({
+      next: (data) => {
+        this.leaveRequests = data.map((req: any) => ({
+          ...req,
+          courseName: req.course?.courseName,
+          courseCode: req.course?.courseCode,
+          teacherName: req.teacher?.name,
+        }));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMessage = 'Failed to load requests.';
+        this.isLoading = false;
+      },
+    });
   }
 
   openLeaveForm(): void {
     this.showLeaveForm = true;
     this.leaveForm.reset();
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 
   closeLeaveForm(): void {
     this.showLeaveForm = false;
-    this.leaveForm.reset();
   }
 
   onSubmitLeave(): void {
     if (this.leaveForm.valid) {
       this.isSubmitting = true;
-      const formData = this.leaveForm.value;
-      const course = this.courses.find((c) => c.id === +formData.courseId);
+      const payload = this.leaveForm.value;
 
-      const newRequest: LeaveRequest = {
-        id: this.leaveRequests.length + 1,
-        courseName: course?.name || '',
-        courseCode: course?.code || '',
-        fromDate: formData.fromDate,
-        toDate: formData.toDate,
-        reason: formData.reason,
-        proofDocument: formData.proofDocument,
-        status: 'PENDING',
-        requestedAt: new Date().toISOString(),
-      };
-
-      // In real app, this would call the service
-      this.leaveRequests.unshift(newRequest);
-      this.isSubmitting = false;
-      this.showLeaveForm = false;
-      this.successMessage = 'Leave request submitted successfully';
-      this.clearMessagesAfterDelay();
+      this.studentService.createLeaveRequest(payload).subscribe({
+        next: (newReq) => {
+          this.isSubmitting = false;
+          this.showLeaveForm = false;
+          this.successMessage = 'Request submitted successfully!';
+          this.loadLeaveRequests();
+          this.clearMessagesAfterDelay();
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = 'Failed to submit request.';
+        },
+      });
     } else {
       this.markFormGroupTouched();
     }
   }
 
-  confirmDeleteRequest(request: LeaveRequest): void {
-    this.requestToDelete = request;
-    this.showConfirmation = true;
+  // --- Helpers ---
+  getPendingRequests(): LeaveRequest[] {
+    return this.leaveRequests.filter((req) => req.status === 'PENDING');
   }
 
-  onDeleteConfirmed(): void {
-    if (this.requestToDelete) {
-      this.leaveRequests = this.leaveRequests.filter(
-        (req) => req.id !== this.requestToDelete!.id
-      );
-      this.showConfirmation = false;
-      this.requestToDelete = null;
-      this.successMessage = 'Leave request deleted successfully';
-      this.clearMessagesAfterDelay();
-    }
-  }
-
-  onDeleteCancelled(): void {
-    this.showConfirmation = false;
-    this.requestToDelete = null;
+  getProcessedRequests(): LeaveRequest[] {
+    return this.leaveRequests.filter((req) => req.status !== 'PENDING');
   }
 
   getStatusColor(status: string): string {
@@ -212,23 +174,25 @@ export class LeaveRequestsComponent implements OnInit {
     }
   }
 
-  getTotalDays(fromDate: string, toDate: string): number {
-    const start = new Date(fromDate);
-    const end = new Date(toDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  getTotalDays(from: string, to: string): number {
+    const start = new Date(from);
+    const end = new Date(to);
+    const diff = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diff / (1000 * 3600 * 24)) + 1;
   }
 
-  canDeleteRequest(request: LeaveRequest): boolean {
-    return request.status === 'PENDING';
+  confirmDeleteRequest(request: LeaveRequest): void {
+    this.requestToDelete = request;
+    this.showConfirmation = true;
   }
 
-  getPendingRequests(): LeaveRequest[] {
-    return this.leaveRequests.filter((req) => req.status === 'PENDING');
+  onDeleteConfirmed(): void {
+    // Implement delete logic here if backend supports it
+    this.showConfirmation = false;
   }
 
-  getProcessedRequests(): LeaveRequest[] {
-    return this.leaveRequests.filter((req) => req.status !== 'PENDING');
+  onDeleteCancelled(): void {
+    this.showConfirmation = false;
   }
 
   private markFormGroupTouched(): void {
@@ -247,11 +211,11 @@ export class LeaveRequestsComponent implements OnInit {
   get courseId() {
     return this.leaveForm.get('courseId');
   }
-  get fromDate() {
-    return this.leaveForm.get('fromDate');
+  get startDate() {
+    return this.leaveForm.get('startDate');
   }
-  get toDate() {
-    return this.leaveForm.get('toDate');
+  get endDate() {
+    return this.leaveForm.get('endDate');
   }
   get reason() {
     return this.leaveForm.get('reason');

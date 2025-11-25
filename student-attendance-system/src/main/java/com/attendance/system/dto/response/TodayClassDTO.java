@@ -1,8 +1,6 @@
 package com.attendance.system.dto.response;
 
 import java.time.LocalTime;
-import java.time.LocalDate;
-import java.time.ZoneId;
 
 public class TodayClassDTO {
     private Long id;
@@ -15,9 +13,10 @@ public class TodayClassDTO {
     private String section;   
     private String status;     
 
-    // 🔴 NEW FIELDS for Dashboard Logic
-    private boolean isUnlockedByAdmin; // True if Approved or Unlocked in DB
-    private boolean hasPendingRequest; // True if Request Sent but not handled
+    // 🔴 Logic Flags
+    private boolean isUnlockedByAdmin; 
+    private boolean hasPendingRequest; 
+    private boolean isAttendanceMarked; // Crucial for toggling Mark/Update
 
     public TodayClassDTO(Long id, String courseName, String courseCode, 
                          LocalTime startTime, LocalTime endTime, 
@@ -30,26 +29,7 @@ public class TodayClassDTO {
         this.classRoom = classRoom;
         this.className = (semester != null) ? "Sem " + semester : "General"; 
         this.section = section;
-        this.status = calculateStatus(startTime, endTime);
-    }
-
-    // ✅ STRICT STATUS LOGIC
-    private String calculateStatus(LocalTime start, LocalTime end) {
-        if (start == null || end == null) {
-            return "Scheduled";
-        }
-
-        ZoneId zone = ZoneId.of("Asia/Kolkata");
-        LocalTime now = LocalTime.now(zone);
-        
-        if (now.isBefore(start)) return "Upcoming";
-        
-        // 15-Minute Rule
-        if (now.isAfter(start.plusMinutes(15))) return "Locked"; 
-        
-        if (now.isAfter(end)) return "Completed";
-
-        return "Ongoing"; 
+        this.status = "Scheduled"; 
     }
 
     // ================= GETTERS AND SETTERS =================
@@ -80,10 +60,12 @@ public class TodayClassDTO {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    // ✅ NEW GETTERS AND SETTERS
     public boolean getIsUnlockedByAdmin() { return isUnlockedByAdmin; }
     public void setIsUnlockedByAdmin(boolean isUnlockedByAdmin) { this.isUnlockedByAdmin = isUnlockedByAdmin; }
 
-    public boolean getHasPendingRequest() { return hasPendingRequest; }
+    public boolean isHasPendingRequest() { return hasPendingRequest; }
     public void setHasPendingRequest(boolean hasPendingRequest) { this.hasPendingRequest = hasPendingRequest; }
+
+    public boolean getIsAttendanceMarked() { return isAttendanceMarked; }
+    public void setIsAttendanceMarked(boolean isAttendanceMarked) { this.isAttendanceMarked = isAttendanceMarked; }
 }

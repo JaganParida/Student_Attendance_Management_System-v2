@@ -1,112 +1,82 @@
 <div class="dashboard-container">
-
-    <!-- Header -->
     <div class="dashboard-header">
         <div class="header-content">
             <div class="header-text">
                 <h1 class="page-title">Teacher Dashboard</h1>
                 <p class="page-subtitle">{{ currentDate | date:'fullDate' }}</p>
             </div>
-
             <div class="header-badge">
                 <span class="greeting-badge">
-                    <i class="fas fa-user-tie me-2"></i>
-                    {{ greeting }}, Teacher
+                    <i class="fas fa-user-tie me-2"></i> {{ greeting }}, Teacher
                 </span>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
     <div class="stats-grid">
-
         <div class="stat-card">
-            <div class="card-icon primary">
-                <i class="fas fa-calendar-day"></i>
-            </div>
+            <div class="card-icon primary"><i class="fas fa-calendar-day"></i></div>
             <div class="card-content">
                 <h3 class="stat-value">{{ todayClasses.length }}</h3>
                 <p class="stat-label">Today's Classes</p>
             </div>
             <div class="card-border primary"></div>
         </div>
-
         <div class="stat-card">
-            <div class="card-icon success">
-                <i class="fas fa-check-circle"></i>
-            </div>
+            <div class="card-icon success"><i class="fas fa-check-circle"></i></div>
             <div class="card-content">
                 <h3 class="stat-value">{{ attendanceMarkedToday }}</h3>
                 <p class="stat-label">Completed Today</p>
             </div>
             <div class="card-border success"></div>
         </div>
-
         <div class="stat-card">
-            <div class="card-icon info">
-                <i class="fas fa-users"></i>
-            </div>
+            <div class="card-icon info"><i class="fas fa-users"></i></div>
             <div class="card-content">
                 <h3 class="stat-value">{{ totalStudents }}</h3>
                 <p class="stat-label">Total Students</p>
             </div>
             <div class="card-border info"></div>
         </div>
-
         <div class="stat-card">
-            <div class="card-icon warning">
-                <i class="fas fa-clock"></i>
-            </div>
+            <div class="card-icon warning"><i class="fas fa-clock"></i></div>
             <div class="card-content">
                 <h3 class="stat-value">{{ pendingRequests }}</h3>
                 <p class="stat-label">Pending Requests</p>
             </div>
             <div class="card-border warning"></div>
         </div>
-
     </div>
 
-    <!-- Schedule List -->
     <div class="schedule-card">
-
         <div class="card-header">
             <div class="header-title">
                 <i class="fas fa-calendar-alt me-2"></i>
                 <h2>Today's Schedule</h2>
             </div>
-
             <div class="header-badge">
                 <span class="schedule-count">{{ todayClasses.length }} classes</span>
             </div>
         </div>
 
         <div class="card-body">
-
-            <!-- Loading State -->
             <div *ngIf="isLoading" class="loading-state">
                 <div class="spinner"></div>
                 <p>Loading schedule...</p>
             </div>
 
-            <!-- Empty State -->
             <div *ngIf="!isLoading && todayClasses.length === 0" class="empty-state">
                 <i class="fas fa-calendar-times"></i>
                 <h3>No classes scheduled for today</h3>
-                <p>Enjoy your day off!</p>
             </div>
 
-            <!-- Schedule List -->
             <div *ngIf="!isLoading && todayClasses.length > 0" class="schedule-list">
-
                 <div *ngFor="let class of todayClasses" class="schedule-item">
 
                     <div class="schedule-time">
                         <div class="time-badge">
                             <i class="fas fa-clock"></i>
-                            <span>
-                                {{ class.startTime | slice:0:5 }} -
-                                {{ class.endTime | slice:0:5 }}
-                            </span>
+                            <span>{{ class.startTime | slice:0:5 }} - {{ class.endTime | slice:0:5 }}</span>
                         </div>
                     </div>
 
@@ -118,56 +88,60 @@
                     </div>
 
                     <div class="schedule-actions">
+
                         <div class="status-badge" [ngClass]="getStatusClass(class.status)">
                             <i [class]="getStatusIcon(class.status)"></i>
-                            {{ getStatusText(class.status) }}
+
+                            <span *ngIf="class.status === 'Ongoing' && !class.isAttendanceMarked">Mark Now</span>
+                            <span *ngIf="class.status === 'Ongoing' && class.isAttendanceMarked">Ongoing</span>
+                            <span *ngIf="class.status === 'Expired' || class.status === 'Locked'">Time Expired</span>
+                            <span *ngIf="class.status === 'NotAllowed'">Expired - Not Allowed</span>
+                            <span *ngIf="class.status === 'Unlocked'">Unlocked</span>
+                            <span *ngIf="class.status === 'Pending'">Pending</span>
+                            <span *ngIf="class.status === 'Upcoming'">Upcoming</span>
+                            <span *ngIf="class.status === 'Completed'">Completed</span>
                         </div>
 
                         <div class="action-buttons">
-
-                            <!-- MARK Button -->
-                            <button *ngIf="class.status === 'Ongoing' || class.status === 'Upcoming'"
+                            <button *ngIf="class.status === 'Ongoing' && !class.isAttendanceMarked"
                                 class="btn btn-primary"
-                                (click)="handleClassAction(class.id, class.startTime, class.status)">
+                                (click)="handleClassAction(class.id, class.startTime, class.status, false)">
                                 <i class="fas fa-edit me-1"></i> Mark
                             </button>
 
-                            <!-- EDIT Button (Completed) -->
-                            <button *ngIf="class.status === 'Completed'" class="btn btn-outline"
-                                (click)="handleClassAction(class.id, class.startTime, class.status)">
-                                <i class="fas fa-edit me-1"></i> Edit
+                            <button *ngIf="class.status === 'Ongoing' && class.isAttendanceMarked"
+                                class="btn btn-outline"
+                                (click)="handleClassAction(class.id, class.startTime, class.status, true)">
+                                <i class="fas fa-sync me-1"></i> Update
                             </button>
 
-                            <!-- UPDATE Button (Unlocked) -->
                             <button *ngIf="class.status === 'Unlocked'" class="btn btn-success"
-                                (click)="handleClassAction(class.id, class.startTime, 'Unlocked')">
-                                <i class="fas fa-sync-alt me-1"></i> Update
+                                (click)="handleClassAction(class.id, class.startTime, 'Unlocked', true)">
+                                <i class="fas fa-check-circle me-1"></i> Update
                             </button>
 
-                            <!-- PENDING WAITING Button -->
                             <button *ngIf="class.status === 'Pending'" class="btn btn-secondary" disabled>
-                                <i class="fas fa-hourglass-half me-1"></i> Wait Approval
+                                <i class="fas fa-hourglass-half me-1"></i> Wait
                             </button>
 
-                            <!-- UNLOCK REQUEST Button -->
-                            <button *ngIf="class.status === 'Locked'" class="btn btn-warning"
-                                (click)="requestUnlock(class.id)">
+                            <button *ngIf="class.status === 'Expired' || class.status === 'Locked'"
+                                class="btn btn-warning" (click)="requestUnlock(class.id)">
                                 <i class="fas fa-lock-open me-1"></i> Request Unlock
                             </button>
 
-                            <!-- BLOCKED Button -->
-                            <button *ngIf="class.status === 'Expired'" class="btn btn-secondary" disabled>
-                                <i class="fas fa-ban me-1"></i> Request Blocked
+                            <button *ngIf="class.status === 'NotAllowed'" class="btn btn-secondary" disabled>
+                                <i class="fas fa-ban me-1"></i> Not Allowed
                             </button>
 
+                            <button *ngIf="class.status === 'Completed'" class="btn btn-outline"
+                                (click)="handleClassAction(class.id, class.startTime, class.status, true)">
+                                <i class="fas fa-eye me-1"></i> View
+                            </button>
                         </div>
                     </div>
 
                 </div>
-
             </div>
-
         </div>
     </div>
-
 </div>

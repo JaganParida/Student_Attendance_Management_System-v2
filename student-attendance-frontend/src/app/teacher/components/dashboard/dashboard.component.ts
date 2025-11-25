@@ -12,17 +12,15 @@ import { TodayClass } from '../../../core/models/teacher.model';
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
-  // Stats
-  totalStudents = 0;
-  totalCourses = 0;
-  pendingRequests = 0;
-  attendanceMarkedToday = 0; // Schedule Data
-
-  todayClasses: TodayClass[] = []; // UI State
-
+  todayClasses: TodayClass[] = [];
   isLoading = true;
   currentDate = new Date();
   greeting = '';
+
+  totalStudents = 0;
+  totalCourses = 0;
+  pendingRequests = 0;
+  attendanceMarkedToday = 0;
 
   constructor(private teacherService: TeacherService, private router: Router) {
     this.setGreeting();
@@ -32,31 +30,22 @@ export class DashboardComponent implements OnInit {
     this.loadDashboardData();
   }
 
+  private getLocalDateString(): string {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().split('T')[0];
+  }
+
   loadDashboardData() {
     this.isLoading = true;
     this.teacherService.getTeacherDashboard().subscribe({
       next: (data) => {
-        console.log('Dashboard Data:', data);
         this.totalStudents = data.totalStudents || 0;
         this.totalCourses = data.totalCourses || 0;
         this.pendingRequests = data.pendingUnlockRequests || 0;
-        this.attendanceMarkedToday = data.attendanceMarkedToday || 0; // 🔴 FIX: Map backend flags to UI Statuses (Unlocked, Pending)
-
-        this.todayClasses = (data.todayClasses || []).map((c: any) => {
-          let uiStatus = c.status;
-
-          // Priority 1: If Admin Approved -> Unlocked
-          if (c.isUnlockedByAdmin) {
-            uiStatus = 'Unlocked';
-          }
-          // Priority 2: If Request Pending -> Pending
-          else if (c.hasPendingRequest) {
-            uiStatus = 'Pending';
-          }
-
-          return { ...c, status: uiStatus };
-        });
-
+        this.attendanceMarkedToday = data.attendanceMarkedToday || 0;
+        this.todayClasses = data.todayClasses || [];
         this.isLoading = false;
       },
       error: (err) => {
@@ -73,80 +62,91 @@ export class DashboardComponent implements OnInit {
     else this.greeting = 'Good Evening';
   }
 
-  handleClassAction(courseId: number, startTime: string, status: string) {
-    // ✅ Fix: Redirect 'Unlocked' status to Edit Page
-    if (status === 'Completed' || status === 'Unlocked') {
+  handleClassAction(
+    courseId: number,
+    startTime: string,
+    status: string,
+    isMarked: boolean | undefined
+  ) {
+    const today = this.getLocalDateString();
+
+    if (status === 'Unlocked') {
       this.router.navigate(['/teacher/mark-attendance'], {
-        queryParams: { courseId, startTime, mode: 'edit' },
+        queryParams: { courseId, startTime, mode: 'edit', date: today },
       });
-    } else {
+    } else if (status === 'Ongoing') {
+      if (isMarked) {
+        this.router.navigate(['/teacher/mark-attendance'], {
+          queryParams: { courseId, startTime, mode: 'edit', date: today },
+        });
+      } else {
+        this.router.navigate(['/teacher/mark-attendance'], {
+          queryParams: { courseId, startTime, date: today },
+        });
+      }
+    } else if (status === 'Expired' || status === 'Locked') {
+      this.requestUnlock(courseId);
+    } else if (status === 'Completed') {
       this.router.navigate(['/teacher/mark-attendance'], {
-        queryParams: { courseId, startTime },
+        queryParams: { courseId, startTime, mode: 'edit', date: today },
       });
+    } else if (status === 'Upcoming') {
+      alert('Class has not started yet.');
+    } else if (status === 'NotAllowed') {
+      alert(
+        '⚠️ Request period expired. Requests are only allowed within 2 days.'
+      );
     }
   }
 
   requestUnlock(courseId: number) {
-    const reason = prompt(
-      '⚠️ Late Attendance Detected.\n\nPlease enter a reason to request access (e.g. "Network Issue"):'
-    );
-
+    const reason = prompt('⚠️ Time Expired. Enter reason for unlock:');
     if (reason) {
       const payload = {
         courseId: courseId,
-        date: new Date().toISOString().split('T')[0],
+        date: this.getLocalDateString(),
         reason: reason,
         requestType: 'LATE_MARKING',
       };
-
       this.teacherService.createUnlockRequest(payload).subscribe({
         next: () => {
-          console.log('✅ Request Sent!');
+          alert('✅ Request Sent! Please wait for admin approval.');
           this.loadDashboardData();
         },
-        error: (err) => {
-          console.error(err);
-        },
+        error: (err) => alert('❌ Failed to send request.'),
       });
     }
   }
 
   getStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
-      Completed: 'status-completed',
       Ongoing: 'status-ongoing',
-      Upcoming: 'status-upcoming',
-      Locked: 'status-locked',
       Expired: 'status-locked',
+      Locked: 'status-locked',
+      NotAllowed: 'status-locked', // Red
       Unlocked: 'status-unlocked',
-      Pending: 'status-warning', // Yellow/Orange for Pending
+      Pending: 'status-warning',
+      Upcoming: 'status-upcoming',
+      Completed: 'status-completed',
     };
     return statusMap[status] || 'status-upcoming';
   }
 
   getStatusIcon(status: string): string {
     const iconMap: { [key: string]: string } = {
-      Completed: 'fas fa-check-circle',
       Ongoing: 'fas fa-play-circle',
-      Upcoming: 'fas fa-clock',
-      Locked: 'fas fa-lock',
       Expired: 'fas fa-ban',
+      Locked: 'fas fa-lock',
+      NotAllowed: 'fas fa-times-circle',
       Unlocked: 'fas fa-unlock',
       Pending: 'fas fa-hourglass-half',
+      Upcoming: 'fas fa-clock',
+      Completed: 'fas fa-check-circle',
     };
     return iconMap[status] || 'fas fa-clock';
   }
 
   getStatusText(status: string): string {
-    const textMap: { [key: string]: string } = {
-      Completed: 'Completed',
-      Ongoing: 'Ongoing',
-      Upcoming: 'Upcoming',
-      Locked: 'Time Expired',
-      Expired: 'Time Expired',
-      Unlocked: 'Unlocked',
-      Pending: 'Time Requested', // Shows Pending text
-    };
-    return textMap[status] || status;
+    return status;
   }
 }

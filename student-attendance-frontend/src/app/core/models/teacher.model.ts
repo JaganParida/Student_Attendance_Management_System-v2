@@ -7,10 +7,12 @@ export interface TodayClass {
   classRoom: string;
   className: string; // "Sem 5"
   section: string; // "A"
-  status: string; // "Upcoming", "Ongoing", "Completed", "Locked"
+  status: string; // "Ongoing", "Expired", "Unlocked", "NotAllowed"
 
-  // 🔴 NEW FIELD: Required for UI to show "Edit (Approved)"
+  // 🔴 REQUIRED FIELDS
   isUnlockedByAdmin?: boolean;
+  isAttendanceMarked?: boolean;
+  hasPendingRequest?: boolean;
 }
 
 export interface TeacherDashboardResponse {

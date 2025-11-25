@@ -1,9 +1,7 @@
 package com.attendance.system.service.impl;
 
 import com.attendance.system.dto.request.LeaveRequestDTO;
-import com.attendance.system.dto.response.AttendanceDetailResponse;
-import com.attendance.system.dto.response.CourseAttendanceDTO;
-import com.attendance.system.dto.response.StudentDashboardResponse;
+import com.attendance.system.dto.response.*;
 import com.attendance.system.entity.*;
 import com.attendance.system.repository.*;
 import com.attendance.system.service.StudentService;
@@ -43,32 +41,24 @@ public class StudentServiceImpl implements StudentService {
             response.setAcademicYear("N/A");
         }
 
-        // 1. Fetch All Relevant Courses (Current + History)
         Set<Course> uniqueCourses = new HashSet<>();
         if (currentClass != null) {
             uniqueCourses.addAll(courseRepository.findByClassEntity(currentClass));
         }
-        // Add history courses
         uniqueCourses.addAll(attendanceRepository.findCoursesByStudentId(studentId));
 
-        // 2. Filter Courses (Robust Matching)
         List<Course> filteredCourses = uniqueCourses.stream()
             .filter(c -> {
-                // Year Match
                 boolean yearMatch = (academicYear == null);
                 if (!yearMatch && c.getClassEntity() != null) {
                     yearMatch = academicYear.equalsIgnoreCase(c.getClassEntity().getAcademicYear());
                 }
 
-                // Semester Match (Robust: "Semester 5" vs "5")
                 boolean semMatch = (semester == null);
                 if (!semMatch && c.getClassEntity() != null) {
                     String dbSem = c.getClassEntity().getSemester();
-                    // Extract digits only for comparison (e.g. "Semester 5" -> "5")
                     String dbSemNum = dbSem != null ? dbSem.replaceAll("\\D+", "") : "";
                     String reqSemNum = semester.replaceAll("\\D+", "");
-                    
-                    // Match if numbers are equal OR exact string equality (fallback for non-numeric semesters)
                     semMatch = dbSemNum.equals(reqSemNum) || dbSem.equalsIgnoreCase(semester);
                 }
 
@@ -76,7 +66,6 @@ public class StudentServiceImpl implements StudentService {
             })
             .collect(Collectors.toList());
 
-        // 3. Calculate Statistics
         List<CourseAttendanceDTO> courseStats = new ArrayList<>();
         int totalClassesOverall = 0;
         int totalPresentOverall = 0;
@@ -111,7 +100,6 @@ public class StudentServiceImpl implements StudentService {
         return response;
     }
 
-    // ... (Keep other existing methods: getStudentAttendance, createLeaveRequest, etc. as they were)
     @Override
     public List<AttendanceDetailResponse> getStudentAttendance(Long studentId, Long courseId, LocalDate startDate, LocalDate endDate) {
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
@@ -128,23 +116,67 @@ public class StudentServiceImpl implements StudentService {
         )).collect(Collectors.toList());
     }
 
+    // ================= NEW LEAVE REQUEST LOGIC =================
+
     @Override
     @Transactional
-    public LeaveRequest createLeaveRequest(LeaveRequestDTO dto, Long studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+    public LeaveRequestResponse createLeaveRequest(LeaveRequestDTO dto, Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        
+        Course course = courseRepository.findById(dto.getCourseId())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
         LeaveRequest request = new LeaveRequest();
         request.setStudent(student);
+        request.setCourse(course);
+        
+        // Ensure Course has a teacher
+        if (course.getTeacher() == null) {
+            throw new RuntimeException("Cannot apply for leave: No teacher assigned to this course.");
+        }
+        request.setTeacher(course.getTeacher()); 
+        
         request.setStartDate(dto.getStartDate());
         request.setEndDate(dto.getEndDate());
         request.setReason(dto.getReason());
-        request.setType(dto.getType()); 
+        request.setType(dto.getType() != null ? dto.getType() : "Personal"); 
         request.setStatus(LeaveRequest.Status.PENDING);
-        return leaveRequestRepository.save(request);
+        
+        LeaveRequest savedRequest = leaveRequestRepository.save(request);
+        
+        // Return DTO
+        return mapToResponse(savedRequest);
     }
 
     @Override
-    public List<LeaveRequest> getStudentLeaveRequests(Long studentId) {
-        return leaveRequestRepository.findByStudentId(studentId);
+    public List<LeaveRequestResponse> getStudentLeaveRequests(Long studentId) {
+        List<LeaveRequest> requests = leaveRequestRepository.findByStudentIdOrderByRequestedAtDesc(studentId);
+        return requests.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    // Helper: Map Entity -> DTO
+    private LeaveRequestResponse mapToResponse(LeaveRequest req) {
+        LeaveRequestResponse response = new LeaveRequestResponse();
+        response.setId(req.getId());
+        response.setCourseName(req.getCourse() != null ? req.getCourse().getCourseName() : "Unknown");
+        response.setCourseCode(req.getCourse() != null ? req.getCourse().getCourseCode() : "N/A");
+        response.setTeacherName(req.getTeacher() != null ? req.getTeacher().getName() : "Unknown");
+        
+        if (req.getStudent() != null) {
+            response.setStudentName(req.getStudent().getName());
+            response.setRollNumber(req.getStudent().getRollNumber());
+        }
+
+        response.setStartDate(req.getStartDate());
+        response.setEndDate(req.getEndDate());
+        response.setReason(req.getReason());
+        response.setType(req.getType());
+        response.setStatus(req.getStatus().toString());
+        response.setRequestedAt(req.getRequestedAt());
+        response.setProcessedAt(req.getProcessedAt());
+        response.setRemarks(req.getRemarks());
+        return response;
     }
 
     @Override

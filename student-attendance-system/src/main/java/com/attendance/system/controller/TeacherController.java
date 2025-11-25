@@ -2,9 +2,9 @@ package com.attendance.system.controller;
 
 import com.attendance.system.dto.request.*;
 import com.attendance.system.dto.response.*;
-import com.attendance.system.dto.response.StudentPerformanceDTO;
+// Explicit import to avoid conflicts
+import com.attendance.system.dto.response.StudentPerformanceDTO; 
 
-import com.attendance.system.entity.LeaveRequest;
 import com.attendance.system.entity.Teacher;
 import com.attendance.system.entity.UnlockRequest;
 import com.attendance.system.repository.TeacherRepository;
@@ -19,48 +19,31 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-// ✅ FIX: REMOVED @CrossOrigin to prevent conflict with WebConfig.java
 @RestController
 @RequestMapping("/teacher")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class TeacherController {
 
-    @Autowired
-    private TeacherService teacherService;
+    @Autowired private TeacherService teacherService;
+    @Autowired private TeacherRepository teacherRepository;
 
-    @Autowired
-    private TeacherRepository teacherRepository;
-
-    /**
-     * Helper method to get the currently logged-in Teacher's ID.
-     */
     private Long getCurrentTeacherId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String teacherEmail = authentication.getName(); 
-        
-        // Debug Log
-        System.out.println("DEBUG: Authenticated User Email: " + teacherEmail);
-
+        String teacherEmail = authentication.getName();
         Teacher teacher = teacherRepository.findByEmail(teacherEmail)
-                .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + teacherEmail));
-        
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
         return teacher.getId();
     }
 
-    // ==========================================
-    // 1. ATTENDANCE & RULES
-    // ==========================================
+    // ... existing attendance endpoints ...
+    
     @GetMapping("/attendance/rules/check")
     public ResponseEntity<Boolean> checkAttendanceRules(
-            @RequestParam Long courseId, 
-            @RequestParam String date, 
-            @RequestParam boolean isEdit) {
+            @RequestParam Long courseId, @RequestParam String date, @RequestParam boolean isEdit) {
         LocalDate checkDate = LocalDate.parse(date);
-        
-        // ✅ FIX: Pass 'courseId' to canEditAttendance so backend can check the 15-minute rule
         boolean allowed = isEdit ? 
             teacherService.canEditAttendance(courseId, checkDate) : 
             teacherService.canMarkAttendance(courseId, checkDate);
-            
         return ResponseEntity.ok(allowed);
     }
 
@@ -75,9 +58,6 @@ public class TeacherController {
         return ResponseEntity.ok("Attendance updated successfully.");
     }
 
-    // ==========================================
-    // 2. UNLOCK REQUESTS
-    // ==========================================
     @PostMapping("/unlock-requests")
     public ResponseEntity<UnlockRequest> createUnlockRequest(@Valid @RequestBody UnlockRequestDTO requestDTO) {
         return ResponseEntity.ok(teacherService.createUnlockRequest(requestDTO, getCurrentTeacherId()));
@@ -87,15 +67,11 @@ public class TeacherController {
     public ResponseEntity<List<UnlockRequest>> getUnlockRequests() {
         return ResponseEntity.ok(teacherService.getTeacherUnlockRequests(getCurrentTeacherId()));
     }
-
-    // ==========================================
-    // 3. STUDENTS & PERFORMANCE
-    // ==========================================
     
+    // ✅ FIXED: Now uses the explicitly imported StudentPerformanceDTO from 'dto.response'
     @GetMapping("/students/{studentId}/performance")
     public ResponseEntity<StudentPerformanceDTO> getStudentPerformance(
-            @PathVariable Long studentId, 
-            @RequestParam Long courseId) {
+            @PathVariable Long studentId, @RequestParam Long courseId) {
         return ResponseEntity.ok(teacherService.getStudentPerformance(studentId, courseId));
     }
 
@@ -106,33 +82,33 @@ public class TeacherController {
 
     @GetMapping("/courses/{courseId}/attendance")
     public ResponseEntity<List<AttendanceResponse>> getClassAttendance(
-            @PathVariable Long courseId, 
-            @RequestParam("date") LocalDate date) {
+            @PathVariable Long courseId, @RequestParam("date") LocalDate date) {
         return ResponseEntity.ok(teacherService.getClassAttendance(courseId, date));
     }
 
-    // ==========================================
-    // 4. DASHBOARD & COURSES
-    // ==========================================
     @GetMapping("/dashboard")
     public ResponseEntity<TeacherDashboardResponse> getDashboard() {
-        // ✅ FIX: Now using real ID because WebConfig fixed the Login Token
         return ResponseEntity.ok(teacherService.getTeacherDashboard(getCurrentTeacherId()));
     }
 
     @GetMapping("/courses")
     public ResponseEntity<List<CourseResponse>> getTeacherCourses() {
-        // ✅ FIX: Now using real ID
         return ResponseEntity.ok(teacherService.getTeacherCourses(getCurrentTeacherId()));
     }
     
     @GetMapping("/leave-requests/pending")
-    public ResponseEntity<List<LeaveRequest>> getPendingLeaveRequests() {
+    public ResponseEntity<List<LeaveRequestResponse>> getPendingLeaveRequests() {
         return ResponseEntity.ok(teacherService.getPendingLeaveRequests(getCurrentTeacherId()));
     }
 
+    // ✅ ADDED: Endpoint to fetch history
+    @GetMapping("/leave-requests/history")
+    public ResponseEntity<List<LeaveRequestResponse>> getLeaveHistory() {
+        return ResponseEntity.ok(teacherService.getTeacherLeaveHistory(getCurrentTeacherId()));
+    }
+
     @PostMapping("/leave-requests/{requestId}/process")
-    public ResponseEntity<LeaveRequest> processLeaveRequest(@PathVariable Long requestId, @RequestParam boolean approve) {
+    public ResponseEntity<LeaveRequestResponse> processLeaveRequest(@PathVariable Long requestId, @RequestParam boolean approve) {
         return ResponseEntity.ok(teacherService.processLeaveRequest(requestId, approve, getCurrentTeacherId()));
     }
     
